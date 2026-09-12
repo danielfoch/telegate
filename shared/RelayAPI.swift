@@ -1,0 +1,60 @@
+import Foundation
+
+enum AppConfiguration {
+  static var service: String {
+    if let saved = UserDefaults.standard.string(forKey: "serviceURL"), !saved.isEmpty {
+      return saved
+    }
+    return Bundle.main.object(forInfoDictionaryKey: "TelegateServiceURL") as? String ?? ""
+  }
+  static func validService(_ value: String) -> URL? {
+    guard let u = URL(string: value), let host = u.host, u.user == nil, u.password == nil,
+      u.query == nil, u.fragment == nil, u.path.isEmpty || u.path == "/"
+    else { return nil }
+    if u.scheme == "https" { return u }
+    #if DEBUG
+      if u.scheme == "http" && ["127.0.0.1", "localhost", "::1"].contains(host) { return u }
+    #endif
+    return nil
+  }
+}
+final class NoRedirect: NSObject, URLSessionTaskDelegate {
+  func urlSession(
+    _ session: URLSession, task: URLSessionTask,
+    willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest,
+    completionHandler: @escaping (URLRequest?) -> Void
+  ) { completionHandler(nil) }
+}
+enum HTTP {
+  // Redirects cannot forward BYOK or computer credentials to a different destination.
+  static let session = URLSession(
+    configuration: .ephemeral, delegate: NoRedirect(), delegateQueue: nil)
+  static func json(_ url: URL, token: String?, body: [String: Any]? = nil) async throws -> Data {
+    var r = URLRequest(url: url)
+    r.timeoutInterval = 60
+    r.httpMethod = body == nil ? "GET" : "POST"
+    r.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    if let token { r.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+    if let body { r.httpBody = try JSONSerialization.data(withJSONObject: body) }
+    let (data, response) = try await session.data(for: r)
+    guard let h = response as? HTTPURLResponse, (200..<300).contains(h.statusCode) else {
+      let e = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+      let msg =
+        e?["error"] as? String ?? (e?["error"] as? [String: Any])?["message"] as? String
+        ?? "The service could not complete this request."
+      throw UserFacingError(message: String(msg.prefix(500)))
+    }
+    return data
+  }
+}
+struct RelayAPI {
+  var service: String
+  var token: String?
+  func request<T: Decodable>(_ path: String, body: [String: Any]? = nil) async throws -> T {
+    guard let base = AppConfiguration.validService(service),
+      let url = URL(string: path, relativeTo: base)
+    else { throw UserFacingError(message: "Set the Telegate service address before connecting.") }
+    let data = try await HTTP.json(url, token: token, body: body)
+    return try JSONDecoder().decode(T.self, from: data)
+  }
+}

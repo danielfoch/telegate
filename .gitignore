@@ -1,0 +1,17 @@
+node_modules/
+.DS_Store
+.env
+*.sqlite*
+.build/
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+Config.local.xcconfig
+outputs/
+*.ipa
+*.xcarchive/
+
+*.p8
+*.pem
+secrets/

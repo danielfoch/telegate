@@ -1,0 +1,35 @@
+services:
+  relay:
+    build: .
+    restart: unless-stopped
+    environment:
+      PUBLIC_URL: https://${TELEGATE_DOMAIN:?Set TELEGATE_DOMAIN in .env}
+      SIGNUP_CODE: ${TELEGATE_SIGNUP_CODE:-}
+      CALLBACK_SIGNING_KEY: ${CALLBACK_SIGNING_KEY:-}
+      PUSH_ENCRYPTION_KEY: ${PUSH_ENCRYPTION_KEY:-}
+      APNS_KEY_ID: ${APNS_KEY_ID:-}
+      APNS_TEAM_ID: ${APNS_TEAM_ID:-}
+      APNS_BUNDLE_ID: ${APNS_BUNDLE_ID:-app.telegate.ios}
+      APNS_KEY_FILE: ${APNS_KEY_FILE:-}
+    volumes:
+      - relay-data:/data
+    expose:
+      - "8790"
+  https:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      TELEGATE_DOMAIN: ${TELEGATE_DOMAIN:?Set TELEGATE_DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - relay
+volumes:
+  relay-data:
+  caddy-data:
+  caddy-config:

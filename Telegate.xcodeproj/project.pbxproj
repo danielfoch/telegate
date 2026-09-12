@@ -1,0 +1,608 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00306B472B35B5A3B50C495C /* BriefPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D174EC2584D1384A812C9B9E /* BriefPlanner.swift */; };
+		065F346AA81413C6627F207D /* SecureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B535AA4B6C6CA6D8DC7BA30 /* SecureStore.swift */; };
+		105483444DF401E3BF089681 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D35B9F50CBAEF3248857B8 /* Models.swift */; };
+		123C080575E8F1C973DC68DE /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D35B9F50CBAEF3248857B8 /* Models.swift */; };
+		165DD3BF9C63E6E7504D8009 /* RelayAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD696F2545102B0FF5AD62D5 /* RelayAPI.swift */; };
+		2813AF1535133A9D03F95637 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5A6A3EEDEB0888121413AD4E /* PrivacyInfo.xcprivacy */; };
+		3F5755BC2D5232A4AA91FD1D /* RelayAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD696F2545102B0FF5AD62D5 /* RelayAPI.swift */; };
+		40D01AD04F9E98AAD720800C /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF7CAAA38B414082B86BC2A /* AppModel.swift */; };
+		4790CC7DF9FD7F5461A497DD /* SecureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B535AA4B6C6CA6D8DC7BA30 /* SecureStore.swift */; };
+		4A1DDD81B9550A3EBEEBC19E /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B202B63B3FFF39041D6CC5 /* Notifications.swift */; };
+		8D9E42352CFB714C70BB8EC5 /* ConnectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E67D9DB9558C3F84D7DA738 /* ConnectApp.swift */; };
+		8FA6DB320FEAB2DB44E1FF46 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BF49F29960A18A0F8A91575 /* Assets.xcassets */; };
+		A3A16E4091A8C9C6FEF026F8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2FDDEAE76D8DA26B16959348 /* Assets.xcassets */; };
+		A9DA2CC2A63D29663DCD34C1 /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = 45BC8AFE10C70B5FF1E6A12B /* WebRTC */; };
+		AEB24F3A2671701E8BB476A8 /* Shortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A25BD5FEE12A493D8CB5B89 /* Shortcuts.swift */; };
+		B30721BA0E8FDFF9849938E5 /* ProtocolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D9FBDB90696F97F59BC149 /* ProtocolTests.swift */; };
+		B4AF9D1429526744FE312C37 /* companion in Resources */ = {isa = PBXBuildFile; fileRef = 038642A5328CBBDFEA7FCFF9 /* companion */; };
+		CBF8854EFB8A4DCF68FAD809 /* TelegateApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E20BB65FBF5AA941387AEC /* TelegateApp.swift */; };
+		EC78B1AFA7E4695A18B74C7D /* VoiceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA299AE9ADE330E8CA23F542 /* VoiceSession.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		609DBF012ECB7F7545D9E0CF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1B15049D3CA49D92918E7139 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C86B35B5AD2D475490F440F4;
+			remoteInfo = Telegate;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		038642A5328CBBDFEA7FCFF9 /* companion */ = {isa = PBXFileReference; lastKnownFileType = folder; path = companion; sourceTree = SOURCE_ROOT; };
+		0E67D9DB9558C3F84D7DA738 /* ConnectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectApp.swift; sourceTree = "<group>"; };
+		1A25BD5FEE12A493D8CB5B89 /* Shortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcuts.swift; sourceTree = "<group>"; };
+		2BF49F29960A18A0F8A91575 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2FDDEAE76D8DA26B16959348 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		42FE869ACF22E62374BF9CD0 /* TelegateTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TelegateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A6A3EEDEB0888121413AD4E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		7B535AA4B6C6CA6D8DC7BA30 /* SecureStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureStore.swift; sourceTree = "<group>"; };
+		ACF7CAAA38B414082B86BC2A /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		B2E20BB65FBF5AA941387AEC /* TelegateApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegateApp.swift; sourceTree = "<group>"; };
+		B3D9FBDB90696F97F59BC149 /* ProtocolTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolTests.swift; sourceTree = "<group>"; };
+		B92E90415B371849EAA8B21E /* TelegateConnect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TelegateConnect.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9B202B63B3FFF39041D6CC5 /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		BD696F2545102B0FF5AD62D5 /* RelayAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayAPI.swift; sourceTree = "<group>"; };
+		C1D35B9F50CBAEF3248857B8 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		D174EC2584D1384A812C9B9E /* BriefPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefPlanner.swift; sourceTree = "<group>"; };
+		DF49CC7C618CDB41FC14D556 /* Telegate.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Telegate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EA299AE9ADE330E8CA23F542 /* VoiceSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSession.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0A6B0BEF0DE2B2C2F29F70A3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A9DA2CC2A63D29663DCD34C1 /* WebRTC in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		50F8A27D0641252AFBF12FF6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DF49CC7C618CDB41FC14D556 /* Telegate.app */,
+				B92E90415B371849EAA8B21E /* TelegateConnect.app */,
+				42FE869ACF22E62374BF9CD0 /* TelegateTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5CDD95FCA135A266FF41BD33 /* TelegateConnect */ = {
+			isa = PBXGroup;
+			children = (
+				2FDDEAE76D8DA26B16959348 /* Assets.xcassets */,
+				0E67D9DB9558C3F84D7DA738 /* ConnectApp.swift */,
+			);
+			name = TelegateConnect;
+			path = mac/TelegateConnect;
+			sourceTree = "<group>";
+		};
+		6DD3EDE0FE7AE7A15C5EE3E9 /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				C1D35B9F50CBAEF3248857B8 /* Models.swift */,
+				BD696F2545102B0FF5AD62D5 /* RelayAPI.swift */,
+				7B535AA4B6C6CA6D8DC7BA30 /* SecureStore.swift */,
+			);
+			path = shared;
+			sourceTree = "<group>";
+		};
+		CB2E2B32EC3FBF8235507534 /* Telegate */ = {
+			isa = PBXGroup;
+			children = (
+				ACF7CAAA38B414082B86BC2A /* AppModel.swift */,
+				2BF49F29960A18A0F8A91575 /* Assets.xcassets */,
+				D174EC2584D1384A812C9B9E /* BriefPlanner.swift */,
+				B9B202B63B3FFF39041D6CC5 /* Notifications.swift */,
+				5A6A3EEDEB0888121413AD4E /* PrivacyInfo.xcprivacy */,
+				1A25BD5FEE12A493D8CB5B89 /* Shortcuts.swift */,
+				B2E20BB65FBF5AA941387AEC /* TelegateApp.swift */,
+				EA299AE9ADE330E8CA23F542 /* VoiceSession.swift */,
+			);
+			name = Telegate;
+			path = ios/Telegate;
+			sourceTree = "<group>";
+		};
+		CB523700415019CF3DF04955 /* TelegateTests */ = {
+			isa = PBXGroup;
+			children = (
+				B3D9FBDB90696F97F59BC149 /* ProtocolTests.swift */,
+			);
+			name = TelegateTests;
+			path = ios/TelegateTests;
+			sourceTree = "<group>";
+		};
+		FAD1A10B1D298B36D63EB411 = {
+			isa = PBXGroup;
+			children = (
+				038642A5328CBBDFEA7FCFF9 /* companion */,
+				6DD3EDE0FE7AE7A15C5EE3E9 /* shared */,
+				CB2E2B32EC3FBF8235507534 /* Telegate */,
+				5CDD95FCA135A266FF41BD33 /* TelegateConnect */,
+				CB523700415019CF3DF04955 /* TelegateTests */,
+				50F8A27D0641252AFBF12FF6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		05DD2525D7DA6DA33E20D36A /* TelegateConnect */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA04456AEAA4FF508F372957 /* Build configuration list for PBXNativeTarget "TelegateConnect" */;
+			buildPhases = (
+				2AB621F083D7EA209937DFCD /* Sources */,
+				DC0E10E7B3E690C969BF2046 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TelegateConnect;
+			packageProductDependencies = (
+			);
+			productName = TelegateConnect;
+			productReference = B92E90415B371849EAA8B21E /* TelegateConnect.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1C3E47B5CA8060A770C8EFC2 /* TelegateTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4DDD23503A16F2FB9418524A /* Build configuration list for PBXNativeTarget "TelegateTests" */;
+			buildPhases = (
+				F42A332A2EDB4EB249DAF82F /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B771168CA60F798FE57F2DF2 /* PBXTargetDependency */,
+			);
+			name = TelegateTests;
+			packageProductDependencies = (
+			);
+			productName = TelegateTests;
+			productReference = 42FE869ACF22E62374BF9CD0 /* TelegateTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C86B35B5AD2D475490F440F4 /* Telegate */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D3CF6DC3CBAB8CC7F10A40C1 /* Build configuration list for PBXNativeTarget "Telegate" */;
+			buildPhases = (
+				07A04714F6C4C3F35A584565 /* Sources */,
+				38B036725F6C7BC6D76D59BC /* Resources */,
+				0A6B0BEF0DE2B2C2F29F70A3 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Telegate;
+			packageProductDependencies = (
+				45BC8AFE10C70B5FF1E6A12B /* WebRTC */,
+			);
+			productName = Telegate;
+			productReference = DF49CC7C618CDB41FC14D556 /* Telegate.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1B15049D3CA49D92918E7139 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					05DD2525D7DA6DA33E20D36A = {
+						ProvisioningStyle = Automatic;
+					};
+					1C3E47B5CA8060A770C8EFC2 = {
+						ProvisioningStyle = Automatic;
+					};
+					C86B35B5AD2D475490F440F4 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = F45EB8507F374AB35304B4AD /* Build configuration list for PBXProject "Telegate" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = FAD1A10B1D298B36D63EB411;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				0ABA847BE0DE2995875F3E93 /* XCRemoteSwiftPackageReference "WebRTC" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 50F8A27D0641252AFBF12FF6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C86B35B5AD2D475490F440F4 /* Telegate */,
+				05DD2525D7DA6DA33E20D36A /* TelegateConnect */,
+				1C3E47B5CA8060A770C8EFC2 /* TelegateTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		38B036725F6C7BC6D76D59BC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8FA6DB320FEAB2DB44E1FF46 /* Assets.xcassets in Resources */,
+				2813AF1535133A9D03F95637 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DC0E10E7B3E690C969BF2046 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A3A16E4091A8C9C6FEF026F8 /* Assets.xcassets in Resources */,
+				B4AF9D1429526744FE312C37 /* companion in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		07A04714F6C4C3F35A584565 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				40D01AD04F9E98AAD720800C /* AppModel.swift in Sources */,
+				00306B472B35B5A3B50C495C /* BriefPlanner.swift in Sources */,
+				123C080575E8F1C973DC68DE /* Models.swift in Sources */,
+				4A1DDD81B9550A3EBEEBC19E /* Notifications.swift in Sources */,
+				3F5755BC2D5232A4AA91FD1D /* RelayAPI.swift in Sources */,
+				065F346AA81413C6627F207D /* SecureStore.swift in Sources */,
+				AEB24F3A2671701E8BB476A8 /* Shortcuts.swift in Sources */,
+				CBF8854EFB8A4DCF68FAD809 /* TelegateApp.swift in Sources */,
+				EC78B1AFA7E4695A18B74C7D /* VoiceSession.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2AB621F083D7EA209937DFCD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D9E42352CFB714C70BB8EC5 /* ConnectApp.swift in Sources */,
+				105483444DF401E3BF089681 /* Models.swift in Sources */,
+				165DD3BF9C63E6E7504D8009 /* RelayAPI.swift in Sources */,
+				4790CC7DF9FD7F5461A497DD /* SecureStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F42A332A2EDB4EB249DAF82F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B30721BA0E8FDFF9849938E5 /* ProtocolTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B771168CA60F798FE57F2DF2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C86B35B5AD2D475490F440F4 /* Telegate */;
+			targetProxy = 609DBF012ECB7F7545D9E0CF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		06A0A4796795FB475B995F22 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				APS_ENVIRONMENT = development;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TELEGATE_PUSH_ENVIRONMENT = sandbox;
+				TELEGATE_SERVICE_URL = "http:/$()/127.0.0.1:8790";
+			};
+			name = Debug;
+		};
+		494CDA74D0F8D588FF278F0D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ios/Telegate.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = ios/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.telegate.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4EFD6E28A3E11680307D6BD8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = mac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.telegate.connect;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		4F2B518E456FCA176143E114 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = mac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.telegate.connect;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		91AAD5777BCB5289B7CC49F7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				APS_ENVIRONMENT = production;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TELEGATE_PUSH_ENVIRONMENT = production;
+				TELEGATE_SERVICE_URL = "";
+			};
+			name = Release;
+		};
+		9DDA28596D99F984297CBCA6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ios/Telegate.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = ios/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.telegate.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B637DC84556A8F43DEAA5399 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.telegate.TelegateTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Telegate.app/Telegate";
+			};
+			name = Release;
+		};
+		D1AAA757BE2D64B9AB7A5648 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.telegate.TelegateTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Telegate.app/Telegate";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4DDD23503A16F2FB9418524A /* Build configuration list for PBXNativeTarget "TelegateTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D1AAA757BE2D64B9AB7A5648 /* Debug */,
+				B637DC84556A8F43DEAA5399 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AA04456AEAA4FF508F372957 /* Build configuration list for PBXNativeTarget "TelegateConnect" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4EFD6E28A3E11680307D6BD8 /* Debug */,
+				4F2B518E456FCA176143E114 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D3CF6DC3CBAB8CC7F10A40C1 /* Build configuration list for PBXNativeTarget "Telegate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				494CDA74D0F8D588FF278F0D /* Debug */,
+				9DDA28596D99F984297CBCA6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F45EB8507F374AB35304B4AD /* Build configuration list for PBXProject "Telegate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				06A0A4796795FB475B995F22 /* Debug */,
+				91AAD5777BCB5289B7CC49F7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0ABA847BE0DE2995875F3E93 /* XCRemoteSwiftPackageReference "WebRTC" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stasel/WebRTC.git";
+			requirement = {
+				kind = exactVersion;
+				version = 153.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		45BC8AFE10C70B5FF1E6A12B /* WebRTC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0ABA847BE0DE2995875F3E93 /* XCRemoteSwiftPackageReference "WebRTC" */;
+			productName = WebRTC;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 1B15049D3CA49D92918E7139 /* Project object */;
+}

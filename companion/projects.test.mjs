@@ -1,0 +1,38 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, writeFile, rm, symlink } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { scanProjects, createScanner } from './projects.mjs';
+import { createRelay } from '../relay/server.mjs';
+import { request, startPairing } from './client.mjs';
+const exec=promisify(execFile);
+test('project scan is opt-in and shares metadata without source contents, file names, paths, or parent projects',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'telegate-project-'));t.after(()=>rm(root,{recursive:true,force:true}));
+  const repo=join(root,'my-project');await mkdir(repo);
+  const git=(...args)=>exec('git',['-C',repo,...args]);
+  await git('init','-b','main');await git('config','user.email','fixture@example.test');await git('config','user.name','Fixture');
+  await writeFile(join(repo,'README.md'),'DO NOT UPLOAD THESE FILE CONTENTS');await git('add','README.md');await git('commit','-m','Add the project');
+  await writeFile(join(repo,'.env'),'VERY_SECRET_VALUE');await mkdir(join(repo,'child'));await symlink(repo,join(root,'link'));
+  const harness=(id,cwd,share)=>({id,name:id,kind:'command',cwd,shareProjectContext:share});
+  assert.deepEqual(await scanProjects([harness('private',repo,false)]),[]);
+  const scan=await scanProjects([harness('one',repo,true),harness('two',repo,true),harness('child',join(repo,'child'),true),harness('link',join(root,'link'),true)]);
+  assert.equal(scan.length,2);assert.deepEqual(scan[0].harnessIds,['one','two']);assert.equal(scan[0].branch,'main');assert.equal(scan[0].changedFiles,1);assert.equal(scan[0].latestCommit,'Add the project');assert.equal(scan[1].status,'not_git');
+  const serialized=JSON.stringify(scan);for(const secret of ['VERY_SECRET_VALUE','DO NOT UPLOAD','.env',repo,'README.md'])assert.ok(!serialized.includes(secret));
+});
+test('scan policy is per-owner; manual scan and interval changes reach only the paired device',async t=>{
+  const relay=createRelay({rateLimit:false});await new Promise(r=>relay.server.listen(0,'127.0.0.1',r));t.after(()=>relay.close());
+  const base=`http://127.0.0.1:${relay.server.address().port}`;
+  const a=await request(base,null,'/v1/auth/register',{username:'alice',password:'a-secure-test-password'});
+  const b=await request(base,null,'/v1/auth/register',{username:'bob',password:'a-secure-test-password'});
+  const pair=await startPairing(base,'Mini','darwin',[]);const {deviceId}=await request(base,a.token,'/v1/pair/approve',{code:pair.code});
+  await assert.rejects(request(base,b.token,'/v1/devices/scan',{deviceId,intervalMinutes:5}),/not found/);
+  await assert.rejects(request(base,a.token,'/v1/devices/scan',{deviceId,intervalMinutes:1}),/supported scan interval/);
+  await request(base,a.token,'/v1/devices/scan',{deviceId,intervalMinutes:15,scanNow:true});
+  const poll=await request(base,pair.secret,'/v1/device/poll',{harnesses:[]});assert.equal(poll.scan.intervalMinutes,15);assert.ok(poll.scan.requestId);
+  await request(base,pair.secret,'/v1/device/projects',{requestId:poll.scan.requestId,projects:[]});
+  const state=await request(base,a.token,'/v1/state');assert.equal(state.devices[0].scanRequested,false);assert.ok(state.devices[0].scannedAt);
+  assert.deepEqual((await request(base,b.token,'/v1/state')).devices,[]);
+});

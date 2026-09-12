@@ -1,0 +1,108 @@
+name: Telegate
+options:
+  bundleIdPrefix: app.telegate
+  deploymentTarget:
+    iOS: "17.0"
+    macOS: "14.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: "0.1.0"
+    CODE_SIGN_STYLE: Automatic
+    TELEGATE_SERVICE_URL: ""
+    TELEGATE_PUSH_ENVIRONMENT: production
+    APS_ENVIRONMENT: production
+  configs:
+    Debug:
+      TELEGATE_SERVICE_URL: "http:/$()/127.0.0.1:8790"
+      TELEGATE_PUSH_ENVIRONMENT: sandbox
+      APS_ENVIRONMENT: development
+packages:
+  WebRTC:
+    url: https://github.com/stasel/WebRTC.git
+    exactVersion: "153.0.0"
+targets:
+  Telegate:
+    type: application
+    platform: iOS
+    sources:
+      - shared
+      - ios/Telegate
+    dependencies:
+      - package: WebRTC
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.telegate.ios
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+    info:
+      path: ios/Info.plist
+      properties:
+        CFBundleDisplayName: Telegate
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        TelegateServiceURL: $(TELEGATE_SERVICE_URL)
+        TelegatePushEnvironment: $(TELEGATE_PUSH_ENVIRONMENT)
+        NSMicrophoneUsageDescription: Telegate uses your microphone to talk through ideas and delegate work to your connected computers.
+        UIBackgroundModes: [audio]
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        CFBundleURLTypes:
+          - CFBundleURLName: app.telegate.call
+            CFBundleURLSchemes: [telegate]
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        ITSAppUsesNonExemptEncryption: false
+    entitlements:
+      path: ios/Telegate.entitlements
+      properties:
+        aps-environment: $(APS_ENVIRONMENT)
+  TelegateConnect:
+    type: application
+    platform: macOS
+    sources:
+      - shared
+      - mac/TelegateConnect
+      - path: companion
+        type: folder
+        buildPhase: resources
+        excludes: ["*.test.mjs"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.telegate.connect
+        ENABLE_APP_SANDBOX: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: mac/Info.plist
+      properties:
+        CFBundleDisplayName: Telegate Connect
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        TelegateServiceURL: $(TELEGATE_SERVICE_URL)
+        LSApplicationCategoryType: public.app-category.productivity
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+  TelegateTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [ios/TelegateTests]
+    dependencies:
+      - target: Telegate
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Telegate:
+    build:
+      targets:
+        Telegate: all
+    test:
+      targets: [TelegateTests]
+  TelegateConnect:
+    build:
+      targets:
+        TelegateConnect: all

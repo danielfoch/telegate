@@ -1,0 +1,11 @@
+# Include only when Apple Push credentials are available.
+# docker compose -f compose.yaml -f compose.push.yaml up -d --build
+services:
+  relay:
+    environment:
+      APNS_KEY_FILE: /run/secrets/apns_key
+    secrets:
+      - apns_key
+secrets:
+  apns_key:
+    file: ${APNS_P8_PATH:?Set APNS_P8_PATH to your private Apple push signing key}
