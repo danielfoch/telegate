@@ -38,6 +38,10 @@ docker compose up -d --build
 
 `docker compose down` preserves named volumes by default; do not add `-v` unless intentionally deleting your data. Existing app installations and companions continue using their configured hostname and credentials.
 
+## Optional Grok Bot integration
+
+The included [Grok Bot / Clydesdale adapter](integrations/GROKBOT.md) runs inside this relay and uses the same persistent database and HTTPS address. Configure a dedicated webhook routine and its private environment variables to enable it. No additional host or OpenAI key is needed.
+
 ## Optional full push support
 
 The free DIY scheme uses in-app results. If you have the required Apple developer credentials, use the full Telegate scheme and the optional APNs secret mount described in [RELEASE.md](RELEASE.md). Push support remains in the open-source project; the planned paid offering is managed convenience, not a restriction on this code.

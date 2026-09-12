@@ -304,7 +304,7 @@ struct ConnectView: View {
                 TextField("HTTPS task-submission URL", text: $h.url)
                 SecureField("Endpoint bearer token", text: $h.token)
                 Text(
-                  "The endpoint must accept a task brief and return its ID or thread URL. Homies/Grokbot require a compatible endpoint from that platform."
+                  "Cloud endpoints must accept the Telegate task contract. For Grok Bot, use your relay’s Grok Bot adapter and its submission token. The Grok webhook key stays on the relay."
                 ).font(.caption).foregroundStyle(.secondary)
               } else {
                 TextField("Executable", text: $h.command)
@@ -338,6 +338,17 @@ struct ConnectView: View {
               }
             }.padding(.vertical, 8).disabled(model.connected || model.pair != nil)
           }
+          Button("Add Grok Bot / Clydesdale") {
+            var harness = LocalHarness()
+            harness.name = "Grok Bot / Clydesdale"
+            harness.kind = "webhook"
+            harness.command = ""
+            if let service = URL(string: model.service), service.scheme == "https" {
+              harness.url = URL(string: "/v1/adapters/grokbot/tasks", relativeTo: service)?.absoluteURL.absoluteString ?? ""
+            }
+            model.harnesses.append(harness)
+          }.disabled(model.connected || model.pair != nil)
+          Link("Set up the Grok Bot relay adapter", destination: URL(string: "https://github.com/danielfoch/telegate/blob/main/docs/integrations/GROKBOT.md")!)
           Button("Add harness") { model.harnesses.append(LocalHarness()) }.disabled(
             model.connected || model.pair != nil)
         }

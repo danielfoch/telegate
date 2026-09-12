@@ -30,3 +30,12 @@ test('follow-ups resume only an explicit saved session, never the last session o
   assert.deepEqual(invocation({...task,resumeRunId:'session-123'},{...adapter,kind:'claude'}).args,['--print','--output-format','stream-json','--verbose','--resume','session-123']);
   assert.throws(()=>invocation({...task,resumeRunId:'--last'},adapter),/session ID/);
 });
+
+test('cloud brief includes scoped callbacks and explicit follow-up IDs without local command execution',async t=>{
+  let sent;
+  t.mock.method(globalThis,'fetch',async(url,init)=>{sent={url,...init,body:JSON.parse(init.body)};return Response.json({id:'saved-task',status:'accepted'});});
+  const result=await runTask({...task,parentTaskId:'parent',resumeRunId:'saved-run',callback:{url:'https://relay.test/v1/hooks/tasks/job-1',token:'scoped-callback'}},{kind:'webhook',url:'https://relay.test/v1/adapters/grokbot/tasks',token:'submission-token'});
+  assert.equal(result.status,'submitted');assert.equal(result.runId,'saved-task');
+  assert.equal(sent.redirect,'error');assert.equal(sent.headers.Authorization,'Bearer submission-token');assert.equal(sent.headers['Idempotency-Key'],task.id);
+  assert.deepEqual(sent.body,{id:task.id,title:task.title,prompt:task.prompt,parent_task_id:'parent',resume_run_id:'saved-run',callback_url:'https://relay.test/v1/hooks/tasks/job-1',callback_token:'scoped-callback'});
+});

@@ -100,7 +100,7 @@ This means **submitted**, not completed. Execute asynchronously and retain the c
 
 Allowed callback outcomes: `completed`, `failed`, `needs_attention`. Retry transport/server errors with backoff using the same task; a duplicate terminal callback cannot rewrite confirmed completion. An early callback is preserved if the provider’s acceptance response reaches the companion afterward. Revoking the paired computer disables its callbacks. The callback token cannot create tasks or inspect other tasks. Keep it out of logs and URLs. The task lease supplies token scope; `CALLBACK_SIGNING_KEY` rotation invalidates outstanding callbacks, so coordinate rotation with running cloud jobs.
 
-Homies/Grokbot still need their inbound task endpoint and this completion worker integration implemented in their own platform. This repository contains the Telegate side, not an unverified integration with those private harnesses.
+The optional [Grok Bot adapter](integrations/GROKBOT.md) adds `POST /v1/adapters/grokbot/tasks` to this relay, with a durable dispatch queue and a dedicated Grok webhook routine contract. It must be configured and tested against your bot before use. Homies and other providers still need a compatible inbound endpoint and completion integration.
 
 ## Completion notifications
 

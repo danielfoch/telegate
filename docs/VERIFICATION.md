@@ -46,4 +46,12 @@ App Intents metadata was generated during the build. The unsigned simulator test
 
 ## Required release acceptance
 
-Use [RELEASE.md](RELEASE.md) for physical-device and cross-network checks. A public HTTPS relay, selected Apple team, signed application/provisioning profiles, are still required. APNs credentials are additionally required for the full push-enabled build; TelegateDIY intentionally omits APNs. Homies/Grokbot's provider-side task endpoint and callback integration are a separate team implementation, described in [API.md](API.md).
+Use [RELEASE.md](RELEASE.md) for physical-device and cross-network checks. A public HTTPS relay, selected Apple team, signed application/provisioning profiles, are still required. APNs credentials are additionally required for the full push-enabled build; TelegateDIY intentionally omits APNs. The optional [Grok Bot adapter](integrations/GROKBOT.md) has automated relay/transport tests; its live routine execution and callback still need acceptance against a public host. Homies requires its own provider integration.
+
+
+## Grok Bot adapter (2026-09-12)
+
+- All 39 Node tests passed locally, including 8 new adapter integration tests and the companion cloud-envelope test. The relay/runner/connector/setup subset also passed on Node 24 Alpine (37 tests); the Git project-scan tests run on the Mac because the minimal relay image does not include Git.
+- Telegate Connect builds successfully with the new Grok Bot preset; Docker image builds with the adapter included.
+- An isolated relay and temporary HTTPS tunnel submitted one harmless task through the real companion cloud runner to a dedicated Clydesdale webhook routine. Grok received the task and prepared its completion callback. Its automatic approval review held the outbound callback for user approval because of the temporary tunnel hostname. Receipt is verified; a live completed result, real phone voice and APNs delivery are not claimed.
+- Permanent hosting, a stable callback hostname, companion configuration and provider approval remain deployment prerequisites. No OpenAI key or business task was used for this integration test.

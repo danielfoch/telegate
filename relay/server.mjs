@@ -3,6 +3,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { randomBytes, randomUUID, createHash, createHmac, scrypt, timingSafeEqual } from 'node:crypto';
 import { createAPNsSender, encryptToken, decryptToken } from './push.mjs';
 import { createMetrics } from './metrics.mjs';
+import { createGrokbot } from './grokbot.mjs';
 import { promisify } from 'node:util';
 import { mkdirSync, chmodSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -41,7 +42,7 @@ const harnesses = input => {
   });
 };
 
-export function createRelay({ database = ':memory:', now = Date.now, publicURL = 'http://127.0.0.1:8790', rateLimit = true, signupCode = '', callbackKey='', pushSender=null, pushEncryptionKey=null } = {}) {
+export function createRelay({ database = ':memory:', now = Date.now, publicURL = 'http://127.0.0.1:8790', rateLimit = true, signupCode = '', callbackKey='', pushSender=null, pushEncryptionKey=null, grokbot=null } = {}) {
   if (database !== ':memory:') mkdirSync(dirname(resolve(database)), { recursive: true, mode: 0o700 });
   const db = new DatabaseSync(database);
   if (database !== ':memory:') chmodSync(database, 0o600);
@@ -110,6 +111,7 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
     if(b.status==='completed')run('UPDATE tasks SET completed_at=COALESCE(completed_at,?) WHERE id=?',now(),t.id);
     const updated=one('SELECT * FROM tasks WHERE id=?',t.id);enqueue(updated);return {ok:true,task:taskJSON(updated)};
   });
+  const grok = grokbot ? createGrokbot({...grokbot,db,now,publicURL,callbackToken,finishTask,callbackKey}) : null;
   let pushing=false;
   const flushPush=async()=>{
     if(pushing||!pushReady)return;pushing=true;
@@ -140,6 +142,10 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
     const ip = req.socket.remoteAddress || 'unknown';
     limit(`ip:${ip}`, 1200);
     expire();
+    if (method === 'POST' && p === '/v1/adapters/grokbot/tasks') {
+      if (!grok) fail(503, 'Grok Bot is not configured on this relay.');
+      return grok.submit(req,b);
+    }
     if (method === 'GET' && p === '/health') return { status: 'ok', version: 1 };
     if(method==='POST'&&p.startsWith('/v1/hooks/tasks/')) {
       const id=p.slice('/v1/hooks/tasks/'.length),t=one('SELECT * FROM tasks WHERE id=?',id);
@@ -227,6 +233,8 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
         const t=one('SELECT * FROM tasks WHERE id=? AND device_id=?',b.taskId,d.id);
         if (!t || t.lease_id!==b.leaseId) fail(409,'Task lease does not match.');
         if (!['completed','failed','needs_attention','submitted'].includes(b.status)) fail(400,'Invalid task outcome.');
+        // An adapter can report a delivery problem before the companion's ACK.
+        if (b.status==='submitted' && t.status==='needs_attention') return {ok:true,task:taskJSON(t)};
         return finishTask(t,b);
       }
       fail(404,'Route not found.');
@@ -324,7 +332,7 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
     } catch(e) { res.statusCode=e.status||500;res.end(JSON.stringify({error:e.status?e.message:'The service could not complete this request.'})); if(!e.status) console.error('Relay error:',e.code||e.name); }
   });
   server.requestTimeout=15000;server.headersTimeout=10000;
-  return { server, db, flushPush, close:async()=>{clearInterval(pushTimer);while(pushing)await new Promise(r=>setTimeout(r,10));pushSender?.close?.();await new Promise(resolve=>server.close(resolve));db.close();} };
+  return { server, db, flushPush, flushGrokbot:()=>grok?.flush(), close:async()=>{await grok?.close();clearInterval(pushTimer);while(pushing)await new Promise(r=>setTimeout(r,10));pushSender?.close?.();await new Promise(resolve=>server.close(resolve));db.close();} };
 }
 if (process.argv[1] && import.meta.url===pathToFileURL(resolve(process.argv[1])).href) {
   const publicURL=process.env.PUBLIC_URL||'http://127.0.0.1:8790';
@@ -332,7 +340,8 @@ if (process.argv[1] && import.meta.url===pathToFileURL(resolve(process.argv[1]))
   const pushSender=createAPNsSender({keyFile:process.env.APNS_KEY_FILE,keyId:process.env.APNS_KEY_ID,teamId:process.env.APNS_TEAM_ID,bundleId:process.env.APNS_BUNDLE_ID});
   const pushEncryptionKey=process.env.PUSH_ENCRYPTION_KEY?Buffer.from(process.env.PUSH_ENCRYPTION_KEY,'base64'):null;
   if(pushSender&&pushEncryptionKey?.length!==32)throw new Error('Configure a 32-byte base64 PUSH_ENCRYPTION_KEY before enabling APNs.');
-  const relay=createRelay({database:process.env.DATABASE_PATH||'./data/telegate.sqlite',publicURL,signupCode:process.env.SIGNUP_CODE||'',callbackKey:process.env.CALLBACK_SIGNING_KEY||'',pushSender,pushEncryptionKey});
+  const grokbot=process.env.GROKBOT_WEBHOOK_URL ? {webhookURL:process.env.GROKBOT_WEBHOOK_URL,webhookToken:process.env.GROKBOT_WEBHOOK_TOKEN||'',submissionToken:process.env.GROKBOT_SUBMISSION_TOKEN,completionTimeoutMs:Number(process.env.GROKBOT_COMPLETION_TIMEOUT_MINUTES||1440)*60_000} : null;
+  const relay=createRelay({grokbot,database:process.env.DATABASE_PATH||'./data/telegate.sqlite',publicURL,signupCode:process.env.SIGNUP_CODE||'',callbackKey:process.env.CALLBACK_SIGNING_KEY||'',pushSender,pushEncryptionKey});
   relay.server.listen(Number(process.env.PORT||8790),process.env.HOST||'127.0.0.1',()=>console.log(`Telegate relay listening at ${publicURL}`));
   for (const signal of ['SIGINT','SIGTERM']) process.once(signal,async()=>{await relay.close();process.exit(0);});
 }

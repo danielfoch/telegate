@@ -19,10 +19,11 @@ if(command==='run') {
     config.service=validateService(await ask('Telegate service address',config.service||process.env.TELEGATE_SERVICE||'http://127.0.0.1:8790'));
     config.name=await ask('Computer name',config.name);
     do {
-      const kind=await ask('Add harness: codex, claude, command, or webhook','codex');
+      const preset=await ask('Add harness: codex, claude, grokbot, command, or webhook','codex');
+      const kind=preset==='grokbot'?'webhook':preset;
       if(!['codex','claude','command','webhook'].includes(kind))throw new Error('Unknown harness type.');
-      const h={id:randomUUID(),name:await ask('Display name',kind==='claude'?'Claude Code':kind==='codex'?'Codex':'My harness'),kind,enabled:true};
-      if(kind==='webhook') {h.url=await ask('Task-submission HTTPS endpoint');if(new URL(h.url).protocol!=='https:')throw new Error('Use HTTPS.');h.token=await ask('Optional endpoint bearer token (leave empty if none)');}
+      const h={id:randomUUID(),name:await ask('Display name',kind==='claude'?'Claude Code':kind==='codex'?'Codex':preset==='grokbot'?'Grok Bot / Clydesdale':'My harness'),kind,enabled:true};
+      if(kind==='webhook') {h.url=await ask('Task-submission HTTPS endpoint',preset==='grokbot'?new URL('/v1/adapters/grokbot/tasks',config.service).href:'');if(new URL(h.url).protocol!=='https:')throw new Error('Use HTTPS.');h.token=await ask(preset==='grokbot'?'Relay GROKBOT_SUBMISSION_TOKEN (not the Grok webhook key)':'Optional endpoint bearer token (leave empty if none)');if(preset==='grokbot'&&h.token.length<32)throw new Error('Copy the relay submission token from Grok Bot setup.');}
       else {h.command=await ask('Executable',kind==='command'?'':kind);h.cwd=resolve(await ask('Working folder',process.cwd()));if(kind==='command'){h.args=JSON.parse(await ask('Arguments as a JSON array; prompts arrive on stdin','[]'));if(!Array.isArray(h.args)||!h.args.every(x=>typeof x==='string'))throw new Error('Arguments must be a JSON string array.');}}
       if(kind!=='webhook')h.shareProjectContext=(await ask('Share this folder’s project name, branch, change count, and latest commit subject with your voice app? y/n','n')).toLowerCase()==='y';
       config.harnesses.push(h);

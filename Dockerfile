@@ -1,7 +1,7 @@
 FROM node:24-alpine
 WORKDIR /app
 COPY package.json ./
-COPY relay/server.mjs relay/push.mjs relay/metrics.mjs relay/
+COPY relay/server.mjs relay/push.mjs relay/metrics.mjs relay/grokbot.mjs relay/
 RUN mkdir /data && chown node:node /data
 USER node
 ENV NODE_ENV=production HOST=0.0.0.0 PORT=8790 DATABASE_PATH=/data/telegate.sqlite
