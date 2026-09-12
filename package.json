@@ -1,6 +1,11 @@
 {
-  "name": "telegate", "private": true, "version": "0.1.0", "type": "module",
-  "engines": { "node": ">=24.0.0" },
+  "name": "telegate",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "start": "node relay/server.mjs",
     "test": "node --test relay/*.test.mjs companion/*.test.mjs",
@@ -8,5 +13,6 @@
     "ios:generate": "xcodegen generate",
     "ios:build": "xcodebuild -project Telegate.xcodeproj -scheme Telegate -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build",
     "mac:build": "xcodebuild -project Telegate.xcodeproj -scheme TelegateConnect -derivedDataPath build CODE_SIGNING_ALLOWED=NO build"
-  }
+  },
+  "license": "MIT"
 }

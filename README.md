@@ -101,3 +101,7 @@ A task-submission endpoint starts work; the completion webhook reports its outco
 The timer runs in Telegate Connect, not in an OpenAI API key and not in iOS background scheduling. Local metadata scans make no OpenAI calls. The same user key powers voice and the planner’s interpretation of project context. A sleeping/offline computer cannot scan or execute tasks; its last-known snapshot remains marked with its scan time.
 
 See [API contract](docs/API.md), [release and deployment](docs/RELEASE.md), and [verification record](docs/VERIFICATION.md).
+
+## License
+
+Telegate source is available under the [MIT License](LICENSE). Third-party dependencies retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).
