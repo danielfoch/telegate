@@ -4,7 +4,29 @@
 
 Talk it through. Send it off. Get back to your day.
 
-**Pilot source — not yet deployed or verified on a physical iPhone.** See [verification](docs/VERIFICATION.md) and the [developer handoff](docs/BUILD-HANDOFF.md).
+**Telegate Community — free to self-host. A simpler App Store experience is planned for later.**
+
+Clone the repo, host your relay, bring your OpenAI key, and build onto your iPhone with Xcode. No Telegate subscription is required. Infrastructure and API usage are yours to operate and pay for.
+
+**Developer preview:** physical-iPhone acceptance is still pending. See [verification](docs/VERIFICATION.md).
+
+## Start here
+
+1. [Host your relay](docs/SELF-HOST.md) on your own HTTPS infrastructure.
+2. [Put Telegate on your iPhone](docs/DIY-IPHONE.md) with the **TelegateDIY** scheme.
+3. Pair a computer, talk through a request, send it to your harness, and get back to your day.
+
+```sh
+git clone https://github.com/danielfoch/telegate.git
+cd telegate
+npm run doctor -- --phone
+npm run setup
+open Telegate.xcodeproj
+```
+
+The setup asks for your deployed relay address. The committed Xcode project does not require regeneration for a normal clone. Choose **TelegateDIY** for a free Personal Team installation, or **Telegate** for the full push-enabled build. DIY has in-app results without background push alerts; Apple's free provisioning requires rebuilding after seven days.
+
+[DIY installation guide](docs/DIY-IPHONE.md) · [Community and commercial roadmap](docs/ROADMAP.md) · [Developer handoff](docs/BUILD-HANDOFF.md)
 
 Native iPhone voice delegation, a Mac companion, and a per-account task relay. A user talks through a request, chooses a computer and harness, and sends a real task brief to that computer. Each user brings their own OpenAI project API key.
 
@@ -32,19 +54,18 @@ The dashboard opens with **Get work done. Get your day back.**, a large voice-ch
 
 Shipped means the relay accepted a prompt for delivery; drafts do not count and retries count once. Hours are explicitly **estimated**, using completed tasks × an adjustable personal minutes-per-task baseline (initially 30, configurable from 0 to 480). No screen or location surveillance is used. Agent runtime is not treated as time saved. Preferences sync to the user’s account across phones.
 
-A community leaderboard is optional and off by default. Users choose a separate display name before joining. It ranks last-7-days prompts shipped and displays completion counts; estimated hours, account names, task contents, computers, and projects stay private. There are no fabricated competitors or automatic enrollment. See [brand and metric definitions](docs/BRAND-AND-METRICS.md).
+A community leaderboard is optional and off by default. Each self-hosted relay has its own board; there is no global data-sharing service. Users choose a separate display name before joining. It ranks last-7-days prompts shipped and displays completion counts; estimated hours, account names, task contents, computers, and projects stay private. There are no fabricated competitors or automatic enrollment. See [brand and metric definitions](docs/BRAND-AND-METRICS.md).
 
-## Open the apps
+## Develop the apps
 
-Requirements: Xcode with iOS 17+ SDK and a working simulator runtime, XcodeGen, Node 24+. Git is needed on companion computers for Git project metadata. Resolve the pinned WebRTC Swift package during the first build.
+Requirements: Xcode with iOS 17+ SDK and a working simulator runtime, Node 24+. XcodeGen is only needed after changing `project.yml`. Git is needed on companion computers for Git project metadata. Resolve the pinned WebRTC Swift package during the first build.
 
 ```sh
 npm test
-xcodegen generate
 open Telegate.xcodeproj
 ```
 
-Choose **Telegate** for iPhone/iPad or **TelegateConnect** for Mac. Debug builds default to `http://127.0.0.1:8790` for same-Mac development. On a real phone, use the HTTPS address of the deployed relay. Both apps expose a pilot service-address setting during setup. For a distributed release, set the `TELEGATE_SERVICE_URL` Xcode build setting to your deployed HTTPS origin.
+Choose **Telegate** for iPhone/iPad or **TelegateConnect** for Mac. Debug builds default to `http://127.0.0.1:8790` for same-Mac development. On a real phone, use the HTTPS address of the deployed relay. Both apps expose a pilot service-address setting during setup. Use `npm run setup` to write the service address, unique app ID and optional team ID into ignored `Config.local.xcconfig`. This file survives project regeneration.
 
 Start the local service in a separate terminal:
 
@@ -63,7 +84,7 @@ It binds to loopback by default and stores data under `data/telegate.sqlite`. No
 5. On the phone: **Computers → +**, enter the code, verify the computer’s name and harnesses, and connect it. Leave Telegate Connect running and the computer awake.
 6. Choose the destination on the Call tab. Tap **Start talking** and grant microphone access. Ask for a small, observable task in a test project. Check the task in both Telegate and the actual harness.
 7. In **Computers → Project awareness**, choose the scan frequency or request a scan. Confirm its timestamp, then ask about that project during a call.
-8. Enable **Settings → Completion notifications** after the operator configures APNs. Finish a test task with the app backgrounded, tap the notification, and verify the result. Ask for a small follow-up and verify the original harness session resumes.
+8. For DIY, reopen **Tasks** to check completion. For the full build, enable **Settings → Completion notifications** after the operator configures APNs. Finish a test task with the app backgrounded, tap the notification, and verify the result. Ask for a small follow-up and verify the original harness session resumes.
 9. Configure **iPhone Settings → Action Button → Shortcut → Telegate → Start voice chat**. The shortcut foregrounds the app, checks setup, and starts voice. iPhone may require unlocking.
 
 `Send when I ask` is enabled by default. Disable it in Settings to prepare drafts for review instead. Ending a call does not cancel tasks already submitted. Queued/draft tasks can be cancelled from Tasks; active work must be inspected in its harness.
@@ -96,7 +117,7 @@ flowchart LR
   M -->|Timestamped project snapshots| R
 ```
 
-A task-submission endpoint starts work; the completion webhook reports its outcome later. The voice call can end while the harness continues. No voice session needs to stay open for completion: the relay stores the result and sends a normal push alert. The user chooses whether to read it, hear it, or discuss the next step. Local harness runs default to a four-hour limit, configurable up to 24 hours; cloud execution limits belong to the provider.
+A task-submission endpoint starts work; the completion webhook reports its outcome later. The voice call can end while the harness continues. No voice session needs to stay open for completion: the relay stores the result and, in a configured push-enabled build, sends a normal push alert. The user chooses whether to read it, hear it, or discuss the next step. Local harness runs default to a four-hour limit, configurable up to 24 hours; cloud execution limits belong to the provider.
 
 The timer runs in Telegate Connect, not in an OpenAI API key and not in iOS background scheduling. Local metadata scans make no OpenAI calls. The same user key powers voice and the planner’s interpretation of project context. A sleeping/offline computer cannot scan or execute tasks; its last-known snapshot remains marked with its scan time.
 

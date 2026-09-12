@@ -1,5 +1,7 @@
 # Release and distribution
 
+For the community clone-and-install route, start with [SELF-HOST.md](SELF-HOST.md) and [DIY-IPHONE.md](DIY-IPHONE.md). **TelegateDIY** omits APNs and supports in-app completion results; the Apple push and distribution steps below apply to the full build.
+
 ## Cloud relay
 
 The relay is deployable to a persistent Linux/Docker host. It is a single service using SQLite WAL, with a persistent `/data` volume. Do not place the database in ephemeral serverless storage or run independent replicas against separate database files. Back up the database using SQLite’s backup API or stop the service before a filesystem backup; retain the WAL correctly.
@@ -36,7 +38,7 @@ The outbox retries failed sends up to ten times, with exponential backoff capped
 
 ## Apple signing
 
-Open `Telegate.xcodeproj` and choose the correct Apple Developer team for **both** application targets. Register unique bundle identifiers for your team if `app.telegate.ios` / `app.telegate.connect` are already reserved. Set the `TELEGATE_SERVICE_URL` build setting to your own deployed HTTPS origin in Release.
+Open `Telegate.xcodeproj` and choose the correct Apple Developer team for **both** application targets. Register unique bundle identifiers for your team if `app.telegate.ios` / `app.telegate.connect` are already reserved. Run `npm run setup` to set your HTTPS origin, unique identifiers and optional team in ignored `Config.local.xcconfig`, shared across build configurations.
 
 The iOS app is native SwiftUI with the pinned WebRTC XCFramework, not a WebView. The app has microphone usage text, audio background mode for an active user-started call, App Shortcuts metadata, a deep link (`telegate://call`), a privacy manifest, an app icon, account deletion, and a recovery flow.
 
@@ -61,7 +63,7 @@ Test the following on an actual iPhone and actual remote computer before calling
 5. Actual Codex and Claude CLI authentication, installed-version compatibility, working folder selection, and native session visibility. Other command/cloud adapters need provider-specific acceptance.
 6. Disconnect a device during a task; lose Wi-Fi after submission; restart the companion with a pending result; ensure no duplicate execution.
 7. Enable one project folder and leave another private; change the scan interval; request an offline scan; resume after sleep; verify context timestamps in voice.
-8. Real APNs completion while the app is backgrounded and terminated; notification tap opens the correct owned task; lock screen does not reveal work contents; denied notifications still leave results in Tasks. Test callback retries and failure alerts.
+8. For DIY, verify completed results after reopening/refreshing Tasks and no request for remote notifications. For the full build: real APNs completion while the app is backgrounded and terminated; notification tap opens the correct owned task; lock screen does not reveal work contents; denied notifications still leave results in Tasks. Test callback retries and failure alerts.
 9. Read a result aloud, discuss it, and explicitly request follow-up work. Verify the exact Codex/Claude session resumes; merely opening or reading a result must create zero new tasks.
 10. Dynamic Type, VoiceOver, small phone, landscape, and iPad layouts; account deletion and sign-out; secure key persistence and removal.
 

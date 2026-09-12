@@ -41,10 +41,12 @@
 
 /* Begin PBXFileReference section */
 		038642A5328CBBDFEA7FCFF9 /* companion */ = {isa = PBXFileReference; lastKnownFileType = folder; path = companion; sourceTree = SOURCE_ROOT; };
+		0CCC094BDBA6F23CDE869349 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		0E67D9DB9558C3F84D7DA738 /* ConnectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectApp.swift; sourceTree = "<group>"; };
 		1A25BD5FEE12A493D8CB5B89 /* Shortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcuts.swift; sourceTree = "<group>"; };
 		2BF49F29960A18A0F8A91575 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2FDDEAE76D8DA26B16959348 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		3CFDC45B068C4337D8CB75A1 /* DIY.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DIY.xcconfig; sourceTree = "<group>"; };
 		42FE869ACF22E62374BF9CD0 /* TelegateTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TelegateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A6A3EEDEB0888121413AD4E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7B535AA4B6C6CA6D8DC7BA30 /* SecureStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureStore.swift; sourceTree = "<group>"; };
@@ -58,6 +60,7 @@
 		C1D35B9F50CBAEF3248857B8 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		D174EC2584D1384A812C9B9E /* BriefPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefPlanner.swift; sourceTree = "<group>"; };
 		DF49CC7C618CDB41FC14D556 /* Telegate.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Telegate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E5E13C6C3CBFE96D97B0A7D4 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		EA299AE9ADE330E8CA23F542 /* VoiceSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSession.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -91,6 +94,16 @@
 			);
 			name = TelegateConnect;
 			path = mac/TelegateConnect;
+			sourceTree = "<group>";
+		};
+		6BDF6F9D765850035091F2CE /* config */ = {
+			isa = PBXGroup;
+			children = (
+				0CCC094BDBA6F23CDE869349 /* Debug.xcconfig */,
+				3CFDC45B068C4337D8CB75A1 /* DIY.xcconfig */,
+				E5E13C6C3CBFE96D97B0A7D4 /* Release.xcconfig */,
+			);
+			path = config;
 			sourceTree = "<group>";
 		};
 		6DD3EDE0FE7AE7A15C5EE3E9 /* shared */ = {
@@ -133,6 +146,7 @@
 			isa = PBXGroup;
 			children = (
 				038642A5328CBBDFEA7FCFF9 /* companion */,
+				6BDF6F9D765850035091F2CE /* config */,
 				6DD3EDE0FE7AE7A15C5EE3E9 /* shared */,
 				CB2E2B32EC3FBF8235507534 /* Telegate */,
 				5CDD95FCA135A266FF41BD33 /* TelegateConnect */,
@@ -315,6 +329,7 @@
 /* Begin XCBuildConfiguration section */
 		06A0A4796795FB475B995F22 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0CCC094BDBA6F23CDE869349 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				APS_ENVIRONMENT = development;
@@ -378,9 +393,26 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TELEGATE_PUSH_ENVIRONMENT = sandbox;
-				TELEGATE_SERVICE_URL = "http:/$()/127.0.0.1:8790";
 			};
 			name = Debug;
+		};
+		13E35C7DD54D325405B57991 /* DIY */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ios/TelegateDIY.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = ios/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(TELEGATE_APP_ID)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = DIY;
 		};
 		494CDA74D0F8D588FF278F0D /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -394,7 +426,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.telegate.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(TELEGATE_APP_ID)";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -412,7 +444,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.telegate.connect;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(TELEGATE_CONNECT_APP_ID)";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -429,13 +461,116 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.telegate.connect;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(TELEGATE_CONNECT_APP_ID)";
 				SDKROOT = macosx;
 			};
 			name = Release;
 		};
+		5C147F7A71ED09931733D712 /* DIY */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.telegate.TelegateTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Telegate.app/Telegate";
+			};
+			name = DIY;
+		};
+		5EEDE9546011F83AB4811B9A /* DIY */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = mac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(TELEGATE_CONNECT_APP_ID)";
+				SDKROOT = macosx;
+			};
+			name = DIY;
+		};
+		7C43C95EEA2F77E77D4718A8 /* DIY */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3CFDC45B068C4337D8CB75A1 /* DIY.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				APS_ENVIRONMENT = development;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TELEGATE_PUSH_ENVIRONMENT = sandbox;
+			};
+			name = DIY;
+		};
 		91AAD5777BCB5289B7CC49F7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E5E13C6C3CBFE96D97B0A7D4 /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				APS_ENVIRONMENT = production;
@@ -492,7 +627,6 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TELEGATE_PUSH_ENVIRONMENT = production;
-				TELEGATE_SERVICE_URL = "";
 			};
 			name = Release;
 		};
@@ -508,7 +642,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.telegate.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(TELEGATE_APP_ID)";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -554,38 +688,42 @@
 		4DDD23503A16F2FB9418524A /* Build configuration list for PBXNativeTarget "TelegateTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
+				5C147F7A71ED09931733D712 /* DIY */,
 				D1AAA757BE2D64B9AB7A5648 /* Debug */,
 				B637DC84556A8F43DEAA5399 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = DIY;
 		};
 		AA04456AEAA4FF508F372957 /* Build configuration list for PBXNativeTarget "TelegateConnect" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
+				5EEDE9546011F83AB4811B9A /* DIY */,
 				4EFD6E28A3E11680307D6BD8 /* Debug */,
 				4F2B518E456FCA176143E114 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = DIY;
 		};
 		D3CF6DC3CBAB8CC7F10A40C1 /* Build configuration list for PBXNativeTarget "Telegate" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
+				13E35C7DD54D325405B57991 /* DIY */,
 				494CDA74D0F8D588FF278F0D /* Debug */,
 				9DDA28596D99F984297CBCA6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = DIY;
 		};
 		F45EB8507F374AB35304B4AD /* Build configuration list for PBXProject "Telegate" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
+				7C43C95EEA2F77E77D4718A8 /* DIY */,
 				06A0A4796795FB475B995F22 /* Debug */,
 				91AAD5777BCB5289B7CC49F7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = DIY;
 		};
 /* End XCConfigurationList section */
 

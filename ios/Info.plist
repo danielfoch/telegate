@@ -40,6 +40,8 @@
 	</dict>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Telegate uses your microphone to talk through ideas and delegate work to your connected computers.</string>
+	<key>TelegatePushEnabled</key>
+	<string>$(TELEGATE_PUSH_ENABLED)</string>
 	<key>TelegatePushEnvironment</key>
 	<string>$(TELEGATE_PUSH_ENVIRONMENT)</string>
 	<key>TelegateServiceURL</key>

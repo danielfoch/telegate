@@ -240,7 +240,9 @@ struct CallView: View {
             ).fixedSize(horizontal: false, vertical: true)
           if voice.state == .idle {
             Text(
-              "Your connected computer does the work. We’ll let you know when it’s ready if notifications are enabled."
+              AppConfiguration.supportsPush
+                ? "Your connected computer does the work. We’ll let you know when it’s ready if notifications are enabled."
+                : "Your connected computer does the work. Come back to Tasks for the result."
             ).foregroundStyle(.secondary)
           }
           VStack(alignment: .leading, spacing: 10) {
@@ -684,14 +686,16 @@ struct SettingsView: View {
           }.disabled(busy || model.busy)
           Button("Delete account", role: .destructive) { deleting = true }.disabled(model.busy)
         }
-        Section("Completion notifications") {
+        Section(AppConfiguration.supportsPush ? "Completion notifications" : "Completion updates") {
           Text(model.notificationStatus).font(.callout)
-          Button(model.notificationsEnabled ? "Turn off notifications" : "Enable notifications") {
-            Task {
-              if model.notificationsEnabled {
-                await model.disableNotifications()
-              } else {
-                await model.enableNotifications()
+          if AppConfiguration.supportsPush {
+            Button(model.notificationsEnabled ? "Turn off notifications" : "Enable notifications") {
+              Task {
+                if model.notificationsEnabled {
+                  await model.disableNotifications()
+                } else {
+                  await model.enableNotifications()
+                }
               }
             }
           }

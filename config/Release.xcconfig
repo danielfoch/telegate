@@ -1,0 +1,2 @@
+#include "Common.xcconfig"
+TELEGATE_PUSH_ENABLED = YES

@@ -3,6 +3,16 @@ import XCTest
 @testable import Telegate
 
 final class ProtocolTests: XCTestCase {
+  func testBuildFlavorMatchesPushAvailability() {
+    #if TELEGATE_DIY
+      XCTAssertFalse(AppConfiguration.supportsPush)
+      XCTAssertEqual(
+        Bundle.main.object(forInfoDictionaryKey: "TelegatePushEnabled") as? String, "NO")
+    #else
+      XCTAssertTrue(AppConfiguration.supportsPush)
+    #endif
+  }
+
   func testTaskDecodesRelayContractIncludingNullThread() throws {
     let data = Data(
       """

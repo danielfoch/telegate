@@ -1,0 +1,5 @@
+TELEGATE_SERVICE_URL =
+TELEGATE_APP_ID = app.telegate.ios
+TELEGATE_CONNECT_APP_ID = app.telegate.connect
+// Optional per-clone configuration written by npm run setup; never committed.
+#include? "../Config.local.xcconfig"

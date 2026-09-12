@@ -1,5 +1,9 @@
 # Telegate pilot handoff
 
+## Community launch path
+
+Ship the free MIT self-hosted developer preview first; a managed App Store edition is planned later. `npm run doctor`, `npm run deploy:setup` and `npm run setup` guide environment, relay and iPhone configuration. The committed **TelegateDIY** scheme removes APNs signing requirements and shows in-app completion updates. Personal Team installs require seven-day renewal. The full **Telegate** scheme keeps optional open-source APNs support. Start with [DIY-IPHONE.md](DIY-IPHONE.md); distribution positioning is in [ROADMAP.md](ROADMAP.md).
+
 ## Brand and account progress
 
 Telegate now centers on **More life. Less screen.** The default account dashboard shows real lifetime and last-7-days shipments/completions, personal completion milestones, and clearly labeled estimated hours using a user-adjustable baseline. An optional, initially private community leaderboard uses chosen aliases and shipped counts. See [BRAND-AND-METRICS.md](BRAND-AND-METRICS.md) for copy, calculation rules and privacy boundaries.
@@ -12,7 +16,7 @@ Telegate now centers on **More life. Less screen.** The default account dashboar
 4. They start a call from the large button or their assigned Action Button shortcut. They workshop the request and explicitly ask Telegate to delegate it.
 5. The app prepares a self-contained brief and submits it with a stable operation ID to the selected computer/harness. Review-first mode creates a draft instead.
 6. The computer claims and executes work. The user can end the call or leave the app. The task persists independently of that call.
-7. A local result or authenticated cloud completion callback updates the task. The relay queues a normal Apple push alert for the owner’s registered phones.
+7. A local result or authenticated cloud completion callback updates the task. In a configured full build, the relay queues a normal Apple push alert for the owner’s registered phones.
 8. A notification tap opens the task result. Only a subsequent **Read it to me** or **Continue by voice** action opens the microphone. Explicit further work becomes a linked follow-up, resuming the saved Codex/Claude session where supported.
 
 ## Boundaries
@@ -27,7 +31,7 @@ Telegate now centers on **More life. Less screen.** The default account dashboar
 
 ## Release work requiring operator configuration
 
-Select the Apple Developer team and final bundle identifiers; provision Push Notifications and provide its private APNs signing key; deploy the relay on a persistent HTTPS host; set the release service URL; archive/sign for TestFlight; sign and notarize the Mac companion. No domain purchase or deployment has been performed.
+DIY needs an HTTPS relay, Personal Team signing, and physical-device acceptance; APNs is optional. For the full distribution build: select the Apple Developer team and final bundle identifiers; provision Push Notifications and provide its private APNs signing key; deploy the relay on a persistent HTTPS host; set the release service URL; archive/sign for TestFlight; sign and notarize the Mac companion. No domain purchase or deployment has been performed.
 
 Then run the physical-device acceptance cases in [RELEASE.md](RELEASE.md). Do not advertise tested iPhone voice, Action Button, car Bluetooth, actual APNs delivery, or installed harness session visibility until those checks pass. [VERIFICATION.md](VERIFICATION.md) records what has actually been checked locally.
 

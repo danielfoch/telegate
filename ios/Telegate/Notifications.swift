@@ -8,7 +8,9 @@ final class TelegateAppDelegate: NSObject, UIApplicationDelegate, UNUserNotifica
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     UNUserNotificationCenter.current().delegate = self
-    if UserDefaults.standard.bool(forKey: "completionNotifications") {
+    if AppConfiguration.supportsPush
+      && UserDefaults.standard.bool(forKey: "completionNotifications")
+    {
       application.registerForRemoteNotifications()
     }
     return true

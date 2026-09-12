@@ -16,7 +16,10 @@ import UserNotifications
   @Published var tab = 4
   @Published var shortcutRequested = false
   @Published var presentedTask: DelegatedTask?
-  @Published var notificationStatus = "Enable notifications to know when delegated work is ready."
+  @Published var notificationStatus =
+    AppConfiguration.supportsPush
+    ? "Enable notifications to know when delegated work is ready."
+    : AppConfiguration.diyCompletionMessage
   @Published var notificationsEnabled = UserDefaults.standard.bool(
     forKey: "completionNotifications")
   private var pushToken: String?
@@ -91,7 +94,9 @@ import UserNotifications
     login = saved
     loadPending()
     do { try await refresh() } catch { self.error = error.localizedDescription }
-    if notificationsEnabled { UIApplication.shared.registerForRemoteNotifications() }
+    if AppConfiguration.supportsPush && notificationsEnabled {
+      UIApplication.shared.registerForRemoteNotifications()
+    }
     return result.recoveryKey
   }
   func saveKey(_ key: String) async throws {
@@ -285,7 +290,7 @@ import UserNotifications
       try await flushPending()
       let message =
         auto
-        ? "Queued \(newBriefs.count) task\(newBriefs.count==1 ? "":"s") for the selected computer\(newBriefs.count==1 ? "":"s"). The computer will pick up work when connected. Its result will appear in Tasks; enable notifications for completion updates."
+        ? "Queued \(newBriefs.count) task\(newBriefs.count==1 ? "":"s") for the selected computer\(newBriefs.count==1 ? "":"s"). The computer will pick up work when connected. Its result will appear in Tasks."
         : "Prepared \(newBriefs.count) draft\(newBriefs.count==1 ? "":"s"). Review and send from Tasks."
       notice = message
       voice.commentary(message, delegation: id)
@@ -358,6 +363,10 @@ import UserNotifications
     Bundle.main.object(forInfoDictionaryKey: "TelegatePushEnvironment") as? String ?? "sandbox"
   }
   func enableNotifications() async {
+    guard AppConfiguration.supportsPush else {
+      notificationStatus = AppConfiguration.diyCompletionMessage
+      return
+    }
     do {
       let config: PushConfiguration = try await api.request("/v1/notifications/config")
       guard config.ready else {
@@ -380,7 +389,7 @@ import UserNotifications
   }
   func registerPush(_ token: String) async {
     pushToken = token
-    guard login != nil, notificationsEnabled else { return }
+    guard AppConfiguration.supportsPush, login != nil, notificationsEnabled else { return }
     do {
       let _: OK = try await api.request(
         "/v1/notifications/register", body: ["token": token, "environment": pushEnvironment])

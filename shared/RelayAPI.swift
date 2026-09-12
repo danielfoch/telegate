@@ -1,6 +1,15 @@
 import Foundation
 
 enum AppConfiguration {
+  static var supportsPush: Bool {
+    #if TELEGATE_DIY
+      return false
+    #else
+      return Bundle.main.object(forInfoDictionaryKey: "TelegatePushEnabled") as? String == "YES"
+    #endif
+  }
+  static let diyCompletionMessage =
+    "Community DIY build: results appear in Tasks when you reopen or refresh the app. Background push alerts are not enabled in this build."
   static var service: String {
     if let saved = UserDefaults.standard.string(forKey: "serviceURL"), !saved.isEmpty {
       return saved
