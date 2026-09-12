@@ -1,5 +1,9 @@
 # Telegate pilot handoff
 
+## Brand and account progress
+
+Telegate now centers on **More life. Less screen.** The default account dashboard shows real lifetime and last-7-days shipments/completions, personal completion milestones, and clearly labeled estimated hours using a user-adjustable baseline. An optional, initially private community leaderboard uses chosen aliases and shipped counts. See [BRAND-AND-METRICS.md](BRAND-AND-METRICS.md) for copy, calculation rules and privacy boundaries.
+
 ## Product flow
 
 1. User creates a Telegate account, saves their recovery key, and verifies their own OpenAI project key on their iPhone.
@@ -31,6 +35,7 @@ Then run the physical-device acceptance cases in [RELEASE.md](RELEASE.md). Do no
 
 | Area | Entry points |
 | --- | --- |
+| Dashboard, estimates and community leaderboard | `ios/Telegate/DashboardView.swift`, `relay/metrics.mjs` |
 | iPhone UI/onboarding | `ios/Telegate/TelegateApp.swift` |
 | Conversation and delegation coordination | `ios/Telegate/AppModel.swift` |
 | Native GPT-Live WebRTC | `ios/Telegate/VoiceSession.swift` |

@@ -1,5 +1,9 @@
 # Telegate
 
+**More life. Less screen.**
+
+Talk it through. Send it off. Get back to your day.
+
 **Pilot source — not yet deployed or verified on a physical iPhone.** See [verification](docs/VERIFICATION.md) and the [developer handoff](docs/BUILD-HANDOFF.md).
 
 Native iPhone voice delegation, a Mac companion, and a per-account task relay. A user talks through a request, chooses a computer and harness, and sends a real task brief to that computer. Each user brings their own OpenAI project API key.
@@ -21,6 +25,14 @@ This is a separate product from Homies Voice. It does not change the existing Ho
 - Tap a notification to review the result, choose **Read it to me**, or **Continue by voice**. Explicit follow-up work can resume the exact saved Codex/Claude session. Opening a result never submits a job by itself.
 - Per-computer project scans: manual, every 5/15/30 minutes, every 1/3/6/12 hours, or daily. Folder sharing is enabled locally, per harness. A phone can change the interval but cannot add scan roots.
 - Project snapshots fed into voice and brief preparation with timestamps. Scans collect folder name, Git branch, change count, latest commit subject and time. No file contents, diffs, filenames, repository remotes, or credentials are uploaded by the scanner.
+
+## Your account dashboard
+
+The dashboard opens with **Get work done. Get your day back.**, a large voice-chat button, all-time/last-7-days counters for prompts shipped and work completed, an estimated screen-time-saved card, and personal completion milestones.
+
+Shipped means the relay accepted a prompt for delivery; drafts do not count and retries count once. Hours are explicitly **estimated**, using completed tasks × an adjustable personal minutes-per-task baseline (initially 30, configurable from 0 to 480). No screen or location surveillance is used. Agent runtime is not treated as time saved. Preferences sync to the user’s account across phones.
+
+A community leaderboard is optional and off by default. Users choose a separate display name before joining. It ranks last-7-days prompts shipped and displays completion counts; estimated hours, account names, task contents, computers, and projects stay private. There are no fabricated competitors or automatic enrollment. See [brand and metric definitions](docs/BRAND-AND-METRICS.md).
 
 ## Open the apps
 

@@ -8,7 +8,17 @@ import SwiftUI
   init() { TelegateShortcuts.updateAppShortcutParameters() }
   var body: some Scene {
     WindowGroup {
-      RootView().environmentObject(model).tint(Palette.ink)
+      Group {
+        #if DEBUG
+          if ProcessInfo.processInfo.arguments.contains("--dashboard-preview") {
+            DashboardDesignPreview()
+          } else {
+            RootView()
+          }
+        #else
+          RootView()
+        #endif
+      }.environmentObject(model).tint(Palette.ink)
         .onOpenURL { url in
           if url.scheme == "telegate" && url.host == "call" { model.requestShortcut() }
         }
@@ -43,6 +53,7 @@ struct RootView: View {
         OnboardingView()
       } else {
         TabView(selection: $model.tab) {
+          DashboardView().tabItem { Label("Dashboard", systemImage: "sun.max.fill") }.tag(4)
           CallView(voice: model.voice).tabItem { Label("Call", systemImage: "phone.fill") }.tag(0)
           ComputersView().tabItem { Label("Computers", systemImage: "laptopcomputer") }.tag(1)
           TasksView().tabItem { Label("Tasks", systemImage: "checklist") }.tag(2)
@@ -91,12 +102,12 @@ struct OnboardingView: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 24) {
           Brand().padding(.top, 24)
-          Text(model.login == nil ? "Your voice.\nYour computers." : "Bring your own voice key.")
+          Text(model.login == nil ? "More life.\nLess screen." : "Bring your own voice key.")
             .font(.system(size: 38, weight: .bold, design: .rounded)).fixedSize(
               horizontal: false, vertical: true)
           Text(
             model.login == nil
-              ? "Talk through an idea, then hand it to the right agent on the right computer."
+              ? "Get work done. Get your day back. Talk through an idea, send it to your agents, and leave your desk behind."
               : "Telegate connects directly to OpenAI using your key. It stays in this iPhone’s Keychain. OpenAI bills voice and brief preparation to your account."
           ).foregroundStyle(.secondary)
           if model.login == nil {
@@ -223,9 +234,15 @@ struct CallView: View {
                 .monospacedDigit()
             }
           }
-          Text(voice.state == .live ? "I’m listening." : "Think out loud.\nHand it over.").font(
-            .system(size: 38, weight: .bold, design: .rounded)
-          ).fixedSize(horizontal: false, vertical: true)
+          Text(voice.state == .live ? "I’m listening." : "Talk it through.\nGet your day back.")
+            .font(
+              .system(size: 38, weight: .bold, design: .rounded)
+            ).fixedSize(horizontal: false, vertical: true)
+          if voice.state == .idle {
+            Text(
+              "Your connected computer does the work. We’ll let you know when it’s ready if notifications are enabled."
+            ).foregroundStyle(.secondary)
+          }
           VStack(alignment: .leading, spacing: 10) {
             Text("SEND WORK TO").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
             if model.targets.isEmpty {

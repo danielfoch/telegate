@@ -65,6 +65,8 @@ Test the following on an actual iPhone and actual remote computer before calling
 9. Read a result aloud, discuss it, and explicitly request follow-up work. Verify the exact Codex/Claude session resumes; merely opening or reading a result must create zero new tasks.
 10. Dynamic Type, VoiceOver, small phone, landscape, and iPad layouts; account deletion and sign-out; secure key persistence and removal.
 
+11. Compare account dashboard totals across phones; verify draft/send/cancel/completion counts, adjustable estimates, and rolling seven-day totals. Join the community board under a separate alias, confirm private details are absent, then opt out. Test large text and scrolling through every dashboard card.
+
 ## Sources checked during implementation
 
 - [GPT-Live getting started](https://developers.openai.com/api/docs/guides/live)

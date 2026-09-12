@@ -119,3 +119,36 @@ extension String {
     return result
   }
 }
+
+struct DashboardTotals: Codable {
+  var promptsShipped: Int
+  var tasksCompleted: Int
+  var estimatedMinutesSaved: Int
+}
+struct DashboardPreferences: Codable {
+  var minutesPerCompletedTask: Int
+  var leaderboardEnabled: Bool
+  var displayName: String
+}
+struct AccountDashboard: Codable {
+  var allTime: DashboardTotals
+  var last7Days: DashboardTotals
+  var preferences: DashboardPreferences
+  var asOf: Double
+  var estimateMethod: String
+}
+struct LeaderboardEntry: Codable, Identifiable {
+  var id: String
+  var displayName: String
+  var promptsShipped: Int
+  var tasksCompleted: Int
+  var rank: Int
+  var isYou: Bool
+}
+struct CommunityLeaderboard: Codable {
+  var entries: [LeaderboardEntry]
+  var yourEntry: LeaderboardEntry?
+  var participantCount: Int
+  var windowStartedAt: Double
+  var asOf: Double
+}

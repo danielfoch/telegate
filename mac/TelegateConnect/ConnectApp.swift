@@ -261,7 +261,7 @@ struct ConnectView: View {
         Image(systemName: "phone.arrow.up.right.fill").font(.largeTitle).foregroundStyle(.green)
         VStack(alignment: .leading) {
           Text("telegate connect").font(.system(size: 28, weight: .bold, design: .rounded))
-          Text("Put this computer on the other end of your call.").foregroundStyle(.secondary)
+          Text("Leave your desk behind. Keep this computer ready for your next idea.").foregroundStyle(.secondary)
         }
         Spacer()
         Circle().fill(model.connected ? .green : .gray).frame(width: 10, height: 10)

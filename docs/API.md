@@ -111,3 +111,19 @@ Homies/Grokbot still need their inbound task endpoint and this completion worker
 A verified local result or cloud callback atomically stores the task outcome and notification outbox rows for the owner’s registered phones. A worker submits generic alerts to APNs, retries transient errors with stable notification IDs and exponential backoff, and removes invalid tokens. A token moved to another account loses its former pending deliveries. Delivery is subject to Apple/device notification settings; APNs acceptance is not proof a person saw an alert.
 
 Payloads contain only a generic message and `taskId`, never the prompt or result. Tapping opens an authenticated task detail; it does not start the microphone. **Read it to me** or **Continue by voice** explicitly starts a new voice session containing bounded prior-task context. A further explicit request to delegate creates a linked follow-up. No incoming webhook speaks into an active voice call automatically.
+
+## Account dashboard and leaderboard
+
+| Route | Authentication | Result |
+| --- | --- | --- |
+| `GET /v1/dashboard` | account token | `allTime`, `last7Days`, `preferences`, `asOf`, `estimateMethod` |
+| `POST /v1/dashboard/preferences` | account token | Partial update of `minutesPerCompletedTask` (integer 0–480), `leaderboardEnabled` (boolean), and `displayName` (up to 24 characters); returns updated dashboard |
+| `GET /v1/leaderboard` | account token | Top 20 opted-in aliases, ranks, shipped/completed counts, `yourEntry` if ranked, participant count, rolling seven-day window |
+
+Dashboard totals aggregate all owned tasks, not the latest-100 task feed. `shipped_at` is recorded once on direct submission or draft-to-queued transition; cancellation retains that historical submission count. `completed_at` is recorded once on confirmed completion. Failed, uncertain, draft, queued, or merely accepted cloud work contributes no estimated saved hours. Repeated acknowledgments do not refresh completion time. The rolling seven-day window is based on server time and event timestamps.
+
+Hours use the user's current baseline and are recalculated retroactively when that baseline changes. The initial 30-minute value is a placeholder, not an empirical measurement. The API does not receive self-reported counters from clients.
+
+Migration adds event columns and preferences without replacing existing data. For pre-migration non-draft/non-cancelled work, shipment time is approximated by `created_at`; existing completion uses `updated_at`. Historical cancelled tasks cannot be reliably classified as sent and are excluded from that backfill. Newly submitted work uses exact event timestamps.
+
+Leaderboard participation requires explicit opt-in and a public alias. Only opted-in accounts with at least one shipment inside the window are ranked. Equal shipped counts share a rank. Estimated hours never determine rank or leave the account dashboard. Opt-out and account deletion remove participation from subsequent responses. The board is a delegation counter, not verified proof of productivity or physical time away from a screen.

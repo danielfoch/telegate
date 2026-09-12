@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { DatabaseSync } from 'node:sqlite';
 import { randomBytes, randomUUID, createHash, createHmac, scrypt, timingSafeEqual } from 'node:crypto';
 import { createAPNsSender, encryptToken, decryptToken } from './push.mjs';
+import { createMetrics } from './metrics.mjs';
 import { promisify } from 'node:util';
 import { mkdirSync, chmodSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -62,6 +63,7 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
   if(!db.prepare('PRAGMA table_info(tasks)').all().some(c=>c.name==='parent_id'))db.exec('ALTER TABLE tasks ADD COLUMN parent_id TEXT; ALTER TABLE tasks ADD COLUMN resume_run_id TEXT;');
   db.exec(`CREATE TABLE IF NOT EXISTS push_devices (id TEXT PRIMARY KEY, owner TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, token TEXT NOT NULL, environment TEXT NOT NULL, updated_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE, push_id TEXT NOT NULL REFERENCES push_devices(id) ON DELETE CASCADE, outcome TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'pending', attempts INTEGER NOT NULL DEFAULT 0, next_at INTEGER NOT NULL, last_error TEXT, UNIQUE(task_id,push_id,outcome)); PRAGMA user_version=3;`);
+  const metrics = createMetrics(db, now);
   const one = (sql, ...args) => db.prepare(sql).get(...args);
   const all = (sql, ...args) => db.prepare(sql).all(...args);
   const run = (sql, ...args) => db.prepare(sql).run(...args);
@@ -105,6 +107,7 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
     let threadURL=null;
     if(b.threadURL){try{const u=new URL(b.threadURL);if(['https:','codex:'].includes(u.protocol))threadURL=u.href;}catch{}}
     run('UPDATE tasks SET status=?,result=?,run_id=COALESCE(?,run_id),thread_url=COALESCE(?,thread_url),updated_at=? WHERE id=?',b.status,string(b.result||'No result text provided.',1,48000,'result'),typeof b.runId==='string'?b.runId.slice(0,200):null,threadURL,now(),t.id);
+    if(b.status==='completed')run('UPDATE tasks SET completed_at=COALESCE(completed_at,?) WHERE id=?',now(),t.id);
     const updated=one('SELECT * FROM tasks WHERE id=?',t.id);enqueue(updated);return {ok:true,task:taskJSON(updated)};
   });
   let pushing=false;
@@ -229,6 +232,9 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
       fail(404,'Route not found.');
     }
     const owner=user(req); limit(`user:${owner}`,180);
+    if(method==='GET'&&p==='/v1/dashboard')return metrics.dashboard(owner);
+    if(method==='POST'&&p==='/v1/dashboard/preferences')return metrics.update(owner,b);
+    if(method==='GET'&&p==='/v1/leaderboard')return metrics.leaderboard(owner);
     if(method==='GET'&&p==='/v1/notifications/config')return {ready:pushReady};
     if(method==='POST'&&p==='/v1/notifications/register') {
       if(!pushReady)fail(503,'Push notifications have not been configured for this Telegate service.');
@@ -283,7 +289,7 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
       if (!d || !JSON.parse(d.harnesses).some(h=>h.id===harnessId&&h.enabled)) fail(400,'Choose one of your configured harnesses.');
       if (one("SELECT COUNT(*) AS n FROM tasks WHERE owner=? AND status IN ('queued','draft')",owner).n>=100) fail(409,'Finish or cancel some queued work before adding more.');
       const id=randomUUID();
-      run('INSERT INTO tasks(id,owner,device_id,harness_id,title,prompt,status,request_key,fingerprint,created_at,updated_at,parent_id,resume_run_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',id,owner,deviceId,harnessId,title,prompt,status,key,fingerprint,now(),now(),parent?.id??null,parent?.run_id??null);
+      run('INSERT INTO tasks(id,owner,device_id,harness_id,title,prompt,status,request_key,fingerprint,created_at,updated_at,parent_id,resume_run_id,shipped_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',id,owner,deviceId,harnessId,title,prompt,status,key,fingerprint,now(),now(),parent?.id??null,parent?.run_id??null,status==='queued'?now():null);
       return {task:taskJSON(ownTask(owner,id))};
     }
     if (method==='POST'&&p==='/v1/tasks/action') {
@@ -291,7 +297,7 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
       if (b.action==='send'&&t.status==='draft') {
         const d=one('SELECT * FROM devices WHERE id=? AND owner=? AND revoked=0',t.device_id,owner);
         if (!d||!JSON.parse(d.harnesses).some(h=>h.id===t.harness_id&&h.enabled)) fail(409,'This harness is disconnected.');
-        run("UPDATE tasks SET status='queued',updated_at=? WHERE id=? AND status='draft'",now(),t.id);
+        run("UPDATE tasks SET status='queued',updated_at=?,shipped_at=COALESCE(shipped_at,?) WHERE id=? AND status='draft'",now(),now(),t.id);
       } else if (b.action==='cancel'&&['draft','queued'].includes(t.status)) run("UPDATE tasks SET status='cancelled',updated_at=? WHERE id=? AND status IN ('draft','queued')",now(),t.id);
       else fail(409,'This task has already moved on. Refresh its status.');
       return {task:taskJSON(ownTask(owner,t.id))};

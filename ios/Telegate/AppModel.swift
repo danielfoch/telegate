@@ -13,7 +13,7 @@ import UserNotifications
   @Published var notice: String?
   @Published var busy = false
   @Published var pending: [PendingBrief] = []
-  @Published var tab = 0
+  @Published var tab = 4
   @Published var shortcutRequested = false
   @Published var presentedTask: DelegatedTask?
   @Published var notificationStatus = "Enable notifications to know when delegated work is ready."

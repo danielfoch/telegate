@@ -12,6 +12,7 @@
 		105483444DF401E3BF089681 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D35B9F50CBAEF3248857B8 /* Models.swift */; };
 		123C080575E8F1C973DC68DE /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D35B9F50CBAEF3248857B8 /* Models.swift */; };
 		165DD3BF9C63E6E7504D8009 /* RelayAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD696F2545102B0FF5AD62D5 /* RelayAPI.swift */; };
+		270D21FD02338EA91113FEF1 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E13F13A4F9445E3ED26D7EF /* DashboardView.swift */; };
 		2813AF1535133A9D03F95637 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5A6A3EEDEB0888121413AD4E /* PrivacyInfo.xcprivacy */; };
 		3F5755BC2D5232A4AA91FD1D /* RelayAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD696F2545102B0FF5AD62D5 /* RelayAPI.swift */; };
 		40D01AD04F9E98AAD720800C /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF7CAAA38B414082B86BC2A /* AppModel.swift */; };
@@ -47,6 +48,7 @@
 		42FE869ACF22E62374BF9CD0 /* TelegateTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TelegateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A6A3EEDEB0888121413AD4E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7B535AA4B6C6CA6D8DC7BA30 /* SecureStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureStore.swift; sourceTree = "<group>"; };
+		8E13F13A4F9445E3ED26D7EF /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		ACF7CAAA38B414082B86BC2A /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		B2E20BB65FBF5AA941387AEC /* TelegateApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegateApp.swift; sourceTree = "<group>"; };
 		B3D9FBDB90696F97F59BC149 /* ProtocolTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolTests.swift; sourceTree = "<group>"; };
@@ -107,6 +109,7 @@
 				ACF7CAAA38B414082B86BC2A /* AppModel.swift */,
 				2BF49F29960A18A0F8A91575 /* Assets.xcassets */,
 				D174EC2584D1384A812C9B9E /* BriefPlanner.swift */,
+				8E13F13A4F9445E3ED26D7EF /* DashboardView.swift */,
 				B9B202B63B3FFF39041D6CC5 /* Notifications.swift */,
 				5A6A3EEDEB0888121413AD4E /* PrivacyInfo.xcprivacy */,
 				1A25BD5FEE12A493D8CB5B89 /* Shortcuts.swift */,
@@ -269,6 +272,7 @@
 			files = (
 				40D01AD04F9E98AAD720800C /* AppModel.swift in Sources */,
 				00306B472B35B5A3B50C495C /* BriefPlanner.swift in Sources */,
+				270D21FD02338EA91113FEF1 /* DashboardView.swift in Sources */,
 				123C080575E8F1C973DC68DE /* Models.swift in Sources */,
 				4A1DDD81B9550A3EBEEBC19E /* Notifications.swift in Sources */,
 				3F5755BC2D5232A4AA91FD1D /* RelayAPI.swift in Sources */,

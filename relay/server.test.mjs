@@ -110,3 +110,68 @@ test('origin, body limits, and optional pilot invitation are enforced',async t=>
   const r=await fetch(f.base+'/v1/auth/register',{method:'POST',headers:{'content-type':'application/json',origin:'https://attacker.test'},body:'{}'});assert.equal(r.status,403);
   const huge=await fetch(f.base+'/v1/auth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({padding:'x'.repeat(71000)})});assert.equal(huge.status,413);
 });
+
+test('dashboard counts accepted prompts once and estimates only confirmed completions',async t=>{
+  const f=await fixture(t),u=await f.register('alice'),other=await f.register('bob'),d=await f.pair(u.token);
+  const first=await f.task(u.token,d,{requestKey:'same'});await f.task(u.token,d,{requestKey:'same'});
+  const draft=await f.task(u.token,d,{send:false});
+  let stats=await f.call('/v1/dashboard',u.token);
+  assert.deepEqual(stats.allTime,{promptsShipped:1,tasksCompleted:0,estimatedMinutesSaved:0});
+  assert.equal(stats.preferences.leaderboardEnabled,false);
+  const job=(await f.call('/v1/device/poll',d.secret,{harnesses})).task;
+  const finish={taskId:job.id,leaseId:job.leaseId,status:'completed',result:'Done'};
+  await f.call('/v1/device/result',d.secret,finish);await f.call('/v1/device/result',d.secret,finish);
+  await f.call('/v1/tasks/action',u.token,{taskId:draft.task.id,action:'send'});
+  await f.call('/v1/tasks/action',u.token,{taskId:draft.task.id,action:'cancel'});
+  stats=await f.call('/v1/dashboard',u.token);
+  assert.deepEqual(stats.allTime,{promptsShipped:2,tasksCompleted:1,estimatedMinutesSaved:30});
+  assert.deepEqual((await f.call('/v1/dashboard',other.token)).allTime,{promptsShipped:0,tasksCompleted:0,estimatedMinutesSaved:0});
+  assert.equal((await f.call('/v1/dashboard',d.secret)).status,401);
+  stats=await f.call('/v1/dashboard/preferences',u.token,{minutesPerCompletedTask:90});
+  assert.equal(stats.allTime.estimatedMinutesSaved,90);
+  assert.equal((await f.call('/v1/dashboard/preferences',u.token,{minutesPerCompletedTask:-1})).status,400);
+  assert.equal((await f.call('/v1/dashboard/preferences',u.token,{minutesPerCompletedTask:1.5})).status,400);
+  assert.equal((await f.call('/v1/dashboard/preferences',u.token,{minutesPerCompletedTask:0})).allTime.estimatedMinutesSaved,0);
+});
+test('weekly metrics use first shipment and completion times rather than draft creation or callback retries',async t=>{
+  const f=await fixture(t),u=await f.register('alice'),d=await f.pair(u.token);
+  const draft=await f.task(u.token,d,{send:false});
+  const old=await f.task(u.token,d);const job=(await f.call('/v1/device/poll',d.secret,{harnesses})).task;
+  await f.call('/v1/device/result',d.secret,{taskId:job.id,leaseId:job.leaseId,status:'completed',result:'Done'});
+  f.clock.time+=8*86400000;
+  await f.call('/v1/device/result',d.secret,{taskId:job.id,leaseId:job.leaseId,status:'completed',result:'Done'});
+  await f.call('/v1/tasks/action',u.token,{taskId:draft.task.id,action:'send'});
+  let stats=await f.call('/v1/dashboard',u.token);
+  assert.equal(stats.allTime.promptsShipped,2);assert.equal(stats.last7Days.promptsShipped,1);assert.equal(stats.last7Days.tasksCompleted,0);
+  const next=(await f.call('/v1/device/poll',d.secret,{harnesses})).task;
+  await f.call('/v1/device/result',d.secret,{taskId:next.id,leaseId:next.leaseId,status:'failed',result:'Not completed'});
+  assert.equal((await f.call('/v1/dashboard',u.token)).last7Days.estimatedMinutesSaved,0);
+});
+test('leaderboard is opt-in, exposes aliases and counts only, ranks ties, and removes departed accounts',async t=>{
+  const f=await fixture(t),alice=await f.register('private-alice'),bob=await f.register('private-bob');
+  const a=await f.pair(alice.token),b=await f.pair(bob.token);
+  await f.task(alice.token,a);await f.task(bob.token,b);
+  assert.deepEqual((await f.call('/v1/leaderboard',alice.token)).entries,[]);
+  assert.equal((await f.call('/v1/dashboard/preferences',alice.token,{leaderboardEnabled:true})).status,400);
+  await f.call('/v1/dashboard/preferences',alice.token,{leaderboardEnabled:true,displayName:'Trail Walker'});
+  await f.call('/v1/dashboard/preferences',bob.token,{leaderboardEnabled:true,displayName:'Ocean Air'});
+  let board=await f.call('/v1/leaderboard',alice.token);
+  assert.equal(board.entries.length,2);assert.deepEqual(board.entries.map(x=>x.rank),[1,1]);
+  assert.equal(board.yourEntry.displayName,'Trail Walker');assert.equal(board.yourEntry.isYou,true);
+  const serialized=JSON.stringify(board);
+  for(const secret of ['private-alice','private-bob',alice.userId,bob.userId,'Improve mobile','Mac mini','estimatedMinutes'])assert.ok(!serialized.includes(secret));
+  assert.deepEqual(Object.keys(board.entries[0]).sort(),['displayName','id','isYou','promptsShipped','rank','tasksCompleted'].sort());
+  await f.call('/v1/dashboard/preferences',alice.token,{leaderboardEnabled:false});
+  board=await f.call('/v1/leaderboard',alice.token);assert.equal(board.entries.length,1);assert.equal(board.yourEntry,null);
+  await f.call('/v1/account/delete',bob.token,{password:'test-password-with-entropy'});
+  assert.equal((await f.call('/v1/leaderboard',alice.token)).entries.length,0);
+});
+test('dashboard lifetime totals include tasks outside the latest-100 task feed',async t=>{
+  const f=await fixture(t),u=await f.register('alice'),d=await f.pair(u.token);
+  const original=(await f.task(u.token,d)).task;
+  const insert=f.relay.db.prepare(`INSERT INTO tasks(id,owner,device_id,harness_id,title,prompt,status,request_key,fingerprint,created_at,updated_at,shipped_at,completed_at)
+    SELECT ?,owner,device_id,harness_id,title,prompt,'completed',?,fingerprint,created_at,updated_at,shipped_at,? FROM tasks WHERE id=?`);
+  for(let i=0;i<110;i++)insert.run('history-'+i,'history-'+i,f.clock.time,original.id);
+  assert.equal((await f.call('/v1/state',u.token)).tasks.length,100);
+  const stats=await f.call('/v1/dashboard',u.token);assert.equal(stats.allTime.promptsShipped,111);assert.equal(stats.allTime.tasksCompleted,110);assert.equal(stats.allTime.estimatedMinutesSaved,3300);
+});
