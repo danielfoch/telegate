@@ -29,3 +29,7 @@ The community board shares only a user-chosen alias and aggregate counts with si
 ## UI verification
 
 A Debug-only `--dashboard-preview` launch argument renders the real dashboard component with explicitly labeled sample data, without creating accounts, calling models, or writing metrics. It is excluded from Release. This fixture exists for visual inspection, not as a product metric feed.
+
+## Mark
+
+The app icon is a phone with a soundwave, an outbound arrow, and a check bubble: you say it, it leaves the phone, it gets done. The vector source is `brand/telegate-mark.svg` (mint on ink); `swift scripts/make-icons.swift .` regenerates the iOS and macOS icon sets from it. See `brand/README.md`.
