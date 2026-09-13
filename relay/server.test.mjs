@@ -104,9 +104,11 @@ test('recovery rotates recovery secret and sessions; deletion cascades to all us
   assert.equal((await f.call('/v1/account/delete',r.token,{password:'new-test-password-long'})).status,200);
   for(const table of ['users','devices','tasks','sessions','pairings'])assert.equal(f.relay.db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n,0);
 });
-test('origin, body limits, and optional pilot invitation are enforced',async t=>{
-  const f=await fixture(t,{signupCode:'invitation'});
-  assert.equal((await f.call('/v1/auth/register',null,{username:'alice',password:'test-password-with-entropy'})).status,403);
+test('registration needs no invitation and still enforces origin and body limits',async t=>{
+  // Stale deployment options must not bring back the removed gate.
+  const f=await fixture(t,{signupCode:'legacy-invitation'});
+  assert.equal((await f.call('/v1/auth/register',null,{username:'alice',password:'test-password-with-entropy'})).status,200);
+  assert.equal((await f.call('/v1/auth/register',null,{username:'bob',password:'test-password-with-entropy',signupCode:'stale-phone-value'})).status,200);
   const r=await fetch(f.base+'/v1/auth/register',{method:'POST',headers:{'content-type':'application/json',origin:'https://attacker.test'},body:'{}'});assert.equal(r.status,403);
   const huge=await fetch(f.base+'/v1/auth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({padding:'x'.repeat(71000)})});assert.equal(huge.status,413);
 });

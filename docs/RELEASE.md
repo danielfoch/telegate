@@ -13,7 +13,7 @@ node scripts/deploy-setup.mjs
 docker compose up -d --build
 ```
 
-The setup wizard writes a private `.env` with the hostname, a randomly generated pilot invitation code, callback signing secret, and push-token encryption key. Preserve these secrets with your database backups; do not commit the `.env` file. Caddy obtains HTTPS certificates and reverse-proxies the relay. Point DNS to the server first and permit inbound TCP 80/443. The relay port itself is not published. Share the invitation through your existing team onboarding process. No OpenAI API key is required on the server.
+The setup wizard writes a private `.env` with the hostname, callback signing secret, and push-token encryption key. Preserve these secrets with your database backups; do not commit the `.env` file. Caddy obtains HTTPS certificates and reverse-proxies the relay. Point DNS to the server first and permit inbound TCP 80/443. The relay port itself is not published. Users create their own accounts without an invitation code. No OpenAI API key is required on the server.
 
 Before inviting users, verify `/health` over the actual HTTPS origin, register a test user, pair a test companion over a different network, and complete a harmless task. Configure backups, operational monitoring, and signup controls appropriate to the audience. The app’s account recovery is key-based, not email-based; if public launch requires email verification, add an identity provider or verified-email flow before removing the pilot gate.
 

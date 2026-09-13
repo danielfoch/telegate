@@ -42,7 +42,7 @@ const harnesses = input => {
   });
 };
 
-export function createRelay({ database = ':memory:', now = Date.now, publicURL = 'http://127.0.0.1:8790', rateLimit = true, signupCode = '', callbackKey='', pushSender=null, pushEncryptionKey=null, grokbot=null } = {}) {
+export function createRelay({ database = ':memory:', now = Date.now, publicURL = 'http://127.0.0.1:8790', rateLimit = true, callbackKey='', pushSender=null, pushEncryptionKey=null, grokbot=null } = {}) {
   if (database !== ':memory:') mkdirSync(dirname(resolve(database)), { recursive: true, mode: 0o700 });
   const db = new DatabaseSync(database);
   if (database !== ':memory:') chmodSync(database, 0o600);
@@ -162,7 +162,6 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
       if (!/^[a-z0-9][a-z0-9_.@+-]+$/.test(username)) fail(400,'Use letters, numbers, dots or underscores for your account name.');
       limit(`account:${username}`, 12);
       if (p === '/v1/auth/register') {
-        if (signupCode && !timingSafeEqual(Buffer.from(hash(String(b.signupCode||''))),Buffer.from(hash(signupCode)))) fail(403,'A valid pilot invitation code is required.');
         if (one('SELECT id FROM users WHERE username=?',username)) fail(409,'That account name is already in use.');
         const password = await credentials(b.password), id=randomUUID(), recovery=token();
         try { run('INSERT INTO users VALUES (?,?,?,?,?)',id,username,password,hash(recovery),now()); }
@@ -341,7 +340,7 @@ if (process.argv[1] && import.meta.url===pathToFileURL(resolve(process.argv[1]))
   const pushEncryptionKey=process.env.PUSH_ENCRYPTION_KEY?Buffer.from(process.env.PUSH_ENCRYPTION_KEY,'base64'):null;
   if(pushSender&&pushEncryptionKey?.length!==32)throw new Error('Configure a 32-byte base64 PUSH_ENCRYPTION_KEY before enabling APNs.');
   const grokbot=process.env.GROKBOT_WEBHOOK_URL ? {webhookURL:process.env.GROKBOT_WEBHOOK_URL,webhookToken:process.env.GROKBOT_WEBHOOK_TOKEN||'',submissionToken:process.env.GROKBOT_SUBMISSION_TOKEN,completionTimeoutMs:Number(process.env.GROKBOT_COMPLETION_TIMEOUT_MINUTES||1440)*60_000} : null;
-  const relay=createRelay({grokbot,database:process.env.DATABASE_PATH||'./data/telegate.sqlite',publicURL,signupCode:process.env.SIGNUP_CODE||'',callbackKey:process.env.CALLBACK_SIGNING_KEY||'',pushSender,pushEncryptionKey});
+  const relay=createRelay({grokbot,database:process.env.DATABASE_PATH||'./data/telegate.sqlite',publicURL,callbackKey:process.env.CALLBACK_SIGNING_KEY||'',pushSender,pushEncryptionKey});
   relay.server.listen(Number(process.env.PORT||8790),process.env.HOST||'127.0.0.1',()=>console.log(`Telegate relay listening at ${publicURL}`));
   for (const signal of ['SIGINT','SIGTERM']) process.once(signal,async()=>{await relay.close();process.exit(0);});
 }

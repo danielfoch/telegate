@@ -6,7 +6,7 @@ All mutations require `Content-Type: application/json`. Responses are JSON and `
 
 | Route | Authentication | Body / result |
 | --- | --- | --- |
-| `POST /v1/auth/register` | none; optional operator invitation | `username`, `password`, optional `signupCode` → account token, user ID, recovery key |
+| `POST /v1/auth/register` | none | `username`, `password` → account token, user ID, recovery key |
 | `POST /v1/auth/login` | none | `username`, `password` → account token |
 | `POST /v1/auth/recover` | recovery secret | `username`, `recoveryKey`, new `password` → rotated token and recovery key |
 | `POST /v1/auth/logout` | account token | Revokes that session |
@@ -131,3 +131,5 @@ Hours use the user's current baseline and are recalculated retroactively when th
 Migration adds event columns and preferences without replacing existing data. For pre-migration non-draft/non-cancelled work, shipment time is approximated by `created_at`; existing completion uses `updated_at`. Historical cancelled tasks cannot be reliably classified as sent and are excluded from that backfill. Newly submitted work uses exact event timestamps.
 
 Leaderboard participation requires explicit opt-in and a public alias. Only opted-in accounts with at least one shipment inside the window are ranked. Equal shipped counts share a rank. Estimated hours never determine rank or leave the account dashboard. Opt-out and account deletion remove participation from subsequent responses. The board is a delegation counter, not verified proof of productivity or physical time away from a screen.
+
+Registration is open to new accounts on the relay. Pilot invitation codes are no longer required; legacy `signupCode` request fields and `SIGNUP_CODE` environment values are ignored. Authentication, device-pairing approval, account isolation and request rate limits still apply.

@@ -16,12 +16,12 @@ npm run deploy:setup
 docker compose up -d --build
 ```
 
-Before starting Caddy, point the chosen hostname to this host and allow inbound TCP 80/443. The setup helper asks for the hostname and writes a private `.env` with the invitation, callback-signing and push-token encryption secrets. It will not overwrite an existing `.env`. No OpenAI key belongs on this server.
+Before starting Caddy, point the chosen hostname to this host and allow inbound TCP 80/443. The setup helper asks for the hostname and writes a private `.env` with callback-signing and push-token encryption secrets. It will not overwrite an existing `.env`. No OpenAI key belongs on this server.
 
 After launch:
 
 - Open your HTTPS origin followed by `/health`; it should return `{"status":"ok","version":1}`. Test from a different network too.
-- Read `TELEGATE_SIGNUP_CODE` from your server’s `.env` and use it for your own account creation in the app. Do not commit or publish this code.
+- Create an account directly in the phone app. No invitation code is required. Existing `TELEGATE_SIGNUP_CODE` / `SIGNUP_CODE` environment values are no longer used.
 - Run `npm run setup` on the Mac used to build the iPhone app and enter this HTTPS origin.
 - Follow [DIY-IPHONE.md](DIY-IPHONE.md) to install the app and pair your execution computer.
 

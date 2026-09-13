@@ -74,13 +74,13 @@ import UserNotifications
     }
   }
   func authenticate(
-    username: String, password: String, mode: String, invitation: String = "",
+    username: String, password: String, mode: String,
     recoveryKey: String = ""
   ) async throws -> String? {
     let result: Login = try await RelayAPI(service: AppConfiguration.service, token: nil).request(
       "/v1/auth/\(mode)",
       body: [
-        "username": username, "password": password, "signupCode": invitation,
+        "username": username, "password": password,
         "recoveryKey": recoveryKey,
       ])
     var saved = result

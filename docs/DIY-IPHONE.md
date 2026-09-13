@@ -41,7 +41,7 @@ Apple references: [run on a physical device](https://developer.apple.com/documen
 
 ## 3. Pair a computer and delegate
 
-1. On the phone, create an account on your own relay using the invitation code generated on the server. Save its recovery key. Add your OpenAI key in the native app.
+1. On the phone, create an account on your own relay; no invitation code is required. Save its recovery key. Add your OpenAI key in the native app.
 2. In Xcode, choose **TelegateConnect → My Mac → Run**, or use `npm run connect` on a supported computer. Both apps use the HTTPS origin you configured. Set up your installed, authenticated Codex/Claude/custom harness and its work folder.
 3. Get a pairing code on that computer. In the iPhone app, open **Computers → +**, enter the code, verify the device identity and approve it. Pair additional computers separately; do not copy connector tokens.
 4. Choose a destination and start a voice call. Grant microphone access, discuss a small test request, and explicitly ask to delegate it. Wait for the app to confirm it was queued.

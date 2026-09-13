@@ -91,7 +91,6 @@ struct OnboardingView: View {
   @State private var password = ""
   @State private var key = ""
   @State private var recovery = ""
-  @State private var invitation = ""
   @State private var service = AppConfiguration.service
   @State private var mode = "register"
   @State private var busy = false
@@ -124,15 +123,12 @@ struct OnboardingView: View {
                 text: $password
               ).textContentType(mode == "login" ? .password : .newPassword)
               if mode == "recover" { SecureField("Recovery key", text: $recovery) }
-              if mode == "register" {
-                SecureField("Pilot invitation code, if provided", text: $invitation)
-              }
             }.padding(20).background(.white, in: RoundedRectangle(cornerRadius: 20))
             DisclosureGroup("Service address") {
               TextField("HTTPS address from your administrator", text: $service).keyboardType(.URL)
                 .textInputAutocapitalization(.never).autocorrectionDisabled()
               Text(
-                "For the pilot, use the same Telegate service address on your phone and computer."
+                "Use the same Telegate service address on your phone and computer."
               ).font(.caption).foregroundStyle(.secondary)
             }
             Button {
@@ -207,7 +203,7 @@ struct OnboardingView: View {
     UserDefaults.standard.set(service, forKey: "serviceURL")
     do {
       recoveryToSave = try await model.authenticate(
-        username: username, password: password, mode: mode, invitation: invitation,
+        username: username, password: password, mode: mode,
         recoveryKey: recovery)
       password = ""
       recovery = ""
