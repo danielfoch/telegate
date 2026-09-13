@@ -6,10 +6,11 @@ export const contentType = "image/png";
 
 async function loadNunito(): Promise<ArrayBuffer | null> {
   try {
+    // A plain user agent makes Google Fonts serve TTF, which Satori can read (no woff2).
     const css = await fetch("https://fonts.googleapis.com/css2?family=Nunito:wght@800&display=swap", {
-      headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36" },
+      headers: { "User-Agent": "Mozilla/5.0" },
     }).then((r) => r.text());
-    const url = css.match(/src: url\(([^)]+)\) format\('(?:truetype|opentype|woff)'\)/)?.[1] ?? css.match(/url\(([^)]+\.(?:ttf|woff))\)/)?.[1];
+    const url = css.match(/url\(([^)]+)\) format\('(?:truetype|opentype)'\)/)?.[1] ?? css.match(/url\(([^)]+\.ttf)\)/)?.[1];
     if (!url) return null;
     return await fetch(url).then((r) => r.arrayBuffer());
   } catch {
@@ -51,8 +52,8 @@ export default async function OpenGraphImage() {
             <div style={{ fontSize: 112, fontWeight: 800, letterSpacing: -4, lineHeight: 0.98 }}>More life.</div>
             <div style={{ fontSize: 112, fontWeight: 800, letterSpacing: -4, lineHeight: 0.98, color: "#adf28f" }}>Less screen.</div>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 26, color: "#9fb0b8" }}>
-            <div>Talk it through. Send it to the agents on your computer at home.</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 32, fontSize: 26, color: "#9fb0b8" }}>
+            <div>Talk it through. Send it to the agents at home.</div>
             <div style={{ display: "flex", gap: 10, fontSize: 20, color: "#f5f7f0" }}>
               <span style={{ border: "1px solid rgba(245,247,240,0.25)", borderRadius: 999, padding: "6px 14px" }}>MIT</span>
               <span style={{ border: "1px solid rgba(245,247,240,0.25)", borderRadius: 999, padding: "6px 14px" }}>self-hosted</span>
