@@ -365,6 +365,20 @@ struct CallView: View {
       }.background(Palette.paper)
         .safeAreaInset(edge: .bottom) {
           VStack(spacing: 8) {
+            if voice.state == .live {
+              HStack(spacing: 12) {
+                Button { voice.setSpeaker(!voice.speakerOn) } label: {
+                  Label(voice.speakerOn ? "Speaker on" : "Speaker off",
+                        systemImage: voice.speakerOn ? "speaker.wave.2.fill" : "speaker.slash")
+                }.buttonStyle(.bordered)
+                  .accessibilityHint(voice.speakerOn
+                    ? "Switch to the iPhone earpiece or connected headset"
+                    : "Switch to the iPhone loudspeaker")
+                Text(voice.audioOutput).font(.caption).foregroundStyle(.secondary)
+                  .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+              }
+            }
             Text(
               voice.state == .ending
                 ? "Finishing the call…" : "Ending a call keeps submitted work running."

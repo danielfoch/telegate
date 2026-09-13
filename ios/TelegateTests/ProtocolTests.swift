@@ -1,8 +1,37 @@
 import XCTest
+import AVFoundation
+import WebRTC
 
 @testable import Telegate
 
 final class ProtocolTests: XCTestCase {
+  @MainActor func testWebRTCAudioReconfigurationPreservesSpeakerAndAllowsEarpiece() throws {
+    let audio = RTCAudioSession.sharedInstance()
+    let previous = RTCAudioSessionConfiguration.webRTC()
+    let session = AVAudioSession.sharedInstance()
+    let category = session.category, options = session.categoryOptions, mode = session.mode
+    defer {
+      RTCAudioSessionConfiguration.setWebRTC(previous)
+      audio.lockForConfiguration()
+      try? audio.setCategory(category, with: options)
+      try? audio.setMode(mode)
+      audio.unlockForConfiguration()
+    }
+    for speaker in [true, false, true] {
+      try VoiceSession.configureAudioRouting(speaker: speaker)
+      // Exercise the category reapplication that happens when WebRTC starts audio.
+      let configuration = RTCAudioSessionConfiguration.webRTC()
+      audio.lockForConfiguration()
+      do {
+        try audio.setCategory(AVAudioSession.Category(rawValue: configuration.category),
+                              with: configuration.categoryOptions)
+      } catch { audio.unlockForConfiguration(); throw error }
+      audio.unlockForConfiguration()
+      XCTAssertEqual(session.categoryOptions.contains(.defaultToSpeaker), speaker)
+      XCTAssertTrue(session.categoryOptions.contains(.allowBluetoothHFP))
+      XCTAssertEqual(session.mode, .voiceChat)
+    }
+  }
   func testSignedBuildCanPersistCredentialsInKeychain() throws {
     let key = "readiness-test-\(UUID().uuidString)"
     defer { SecureStore.remove(key) }

@@ -9,6 +9,8 @@ final class VoiceSession: NSObject, ObservableObject {
   @Published var transcript: [TranscriptLine] = []
   @Published var error: String?
   @Published var elapsed = 0
+  @Published private(set) var speakerOn = false
+  @Published private(set) var audioOutput = "iPhone speaker"
   var onDelegation: ((String) -> Void)?
   private var peer: RTCPeerConnection?
   private var channel: RTCDataChannel?
@@ -19,6 +21,7 @@ final class VoiceSession: NSObject, ObservableObject {
   private var lastDeltaAt = Date.distantPast
   private var startedAt: Date?
   private var interruption: NSObjectProtocol?
+  private var routeObserver: NSObjectProtocol?
   private static let factory: RTCPeerConnectionFactory = {
     RTCInitializeSSL()
     return RTCPeerConnectionFactory()
@@ -37,6 +40,56 @@ final class VoiceSession: NSObject, ObservableObject {
           "Voice chat paused by another call or audio session. Tap Start when you’re ready."
       }
     }
+    routeObserver = NotificationCenter.default.addObserver(
+      forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor in self?.refreshAudioOutput() }
+    }
+  }
+  deinit {
+    if let interruption { NotificationCenter.default.removeObserver(interruption) }
+    if let routeObserver { NotificationCenter.default.removeObserver(routeObserver) }
+  }
+  // WebRTC reapplies this configuration when its audio unit starts. Configuring only
+  // AVAudioSession before creating the peer lets WebRTC remove defaultToSpeaker.
+  static func configureAudioRouting(speaker: Bool) throws {
+    let configuration = RTCAudioSessionConfiguration()
+    configuration.categoryOptions = speaker ? [.defaultToSpeaker, .allowBluetoothHFP] : [.allowBluetoothHFP]
+    RTCAudioSessionConfiguration.setWebRTC(configuration)
+    let audio = RTCAudioSession.sharedInstance()
+    audio.lockForConfiguration()
+    defer { audio.unlockForConfiguration() }
+    try audio.setCategory(.playAndRecord, with: configuration.categoryOptions)
+    try audio.setMode(.voiceChat)
+  }
+  func setSpeaker(_ enabled: Bool) {
+    guard state == .live else { return }
+    do {
+      try Self.configureAudioRouting(speaker: enabled)
+      try overrideSpeaker(enabled)
+      error = nil
+    } catch {
+      self.error = "Couldn’t change audio output. \(error.localizedDescription)"
+    }
+    refreshAudioOutput()
+  }
+  private func overrideSpeaker(_ enabled: Bool) throws {
+    let audio = RTCAudioSession.sharedInstance()
+    audio.lockForConfiguration()
+    defer { audio.unlockForConfiguration() }
+    try audio.overrideOutputAudioPort(enabled ? .speaker : .none)
+  }
+  private func refreshAudioOutput() {
+    let outputs = AVAudioSession.sharedInstance().currentRoute.outputs
+    speakerOn = outputs.contains { $0.portType == .builtInSpeaker }
+    audioOutput = outputs.map {
+      switch $0.portType {
+      case .builtInSpeaker: "iPhone speaker"
+      case .builtInReceiver: "iPhone earpiece"
+      default: $0.portName
+      }
+    }.joined(separator: ", ")
+    if audioOutput.isEmpty { audioOutput = "Audio connecting…" }
   }
   func start(key: String, instructions: String, projectContext: String = "") async {
     guard state == .idle else { return }
@@ -55,17 +108,18 @@ final class VoiceSession: NSObject, ObservableObject {
             "Microphone access is off. Open iPhone Settings → Telegate → Microphone, then try again."
         )
       }
+      try Self.configureAudioRouting(speaker: true)
       let audio = RTCAudioSession.sharedInstance()
       audio.lockForConfiguration()
       do {
-        try audio.setCategory(.playAndRecord, with: [.defaultToSpeaker, .allowBluetoothHFP])
-        try audio.setMode(.voiceChat)
         try audio.setActive(true)
+        try audio.overrideOutputAudioPort(.speaker)
       } catch {
         audio.unlockForConfiguration()
         throw error
       }
       audio.unlockForConfiguration()
+      refreshAudioOutput()
       let configuration = RTCConfiguration()
       configuration.sdpSemantics = .unifiedPlan
       guard
@@ -206,6 +260,7 @@ final class VoiceSession: NSObject, ObservableObject {
     state = .idle
     let audio = RTCAudioSession.sharedInstance()
     audio.lockForConfiguration()
+    try? audio.overrideOutputAudioPort(.none)
     try? audio.setActive(false)
     audio.unlockForConfiguration()
   }
@@ -219,6 +274,10 @@ final class VoiceSession: NSObject, ObservableObject {
       deadline?.cancel()
       deadline = nil
       state = .live
+      // Apply once after WebRTC starts; subsequent user route changes remain respected.
+      do { try overrideSpeaker(true) }
+      catch { self.error = "Couldn’t select the speaker. Use the Speaker button to retry." }
+      refreshAudioOutput()
       startedAt = Date()
       clock = Task {
         while !Task.isCancelled {
