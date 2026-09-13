@@ -1,4 +1,6 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export const alt = "Telegate — More life. Less screen.";
 export const size = { width: 1200, height: 630 };
@@ -18,8 +20,13 @@ async function loadNunito(): Promise<ArrayBuffer | null> {
   }
 }
 
+async function loadIcon(): Promise<string> {
+  const png = await readFile(join(process.cwd(), "public", "brand", "telegate-icon.png"));
+  return `data:image/png;base64,${png.toString("base64")}`;
+}
+
 export default async function OpenGraphImage() {
-  const nunito = await loadNunito();
+  const [nunito, icon] = await Promise.all([loadNunito(), loadIcon()]);
   const bars = [14, 30, 52, 38, 64, 46, 28, 58, 40, 22, 48, 34, 60, 26, 44, 18];
   return new ImageResponse(
     (
@@ -38,9 +45,7 @@ export default async function OpenGraphImage() {
         <div style={{ position: "absolute", right: -120, top: -120, width: 620, height: 620, borderRadius: 9999, background: "radial-gradient(circle, rgba(173,242,143,0.35) 0%, rgba(173,242,143,0) 65%)" }} />
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: "100%" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: "#0b1419", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(245,247,240,0.15)" }}>
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#adf28f" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 5 5L14 13l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" /><path d="M15 3h6v6M21 3l-7 7" stroke="#f5f7f0" /></svg>
-            </div>
+            <img src={icon} width={56} height={56} style={{ borderRadius: 16 }} alt="" />
             <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: -1.6 }}>telegate</div>
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "flex-end", gap: 6, height: 70 }}>
               {bars.map((h, i) => (

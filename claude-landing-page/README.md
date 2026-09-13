@@ -27,4 +27,5 @@ Deployed to Vercel from this directory (project `telegate-claude-landing-page`).
 - Honors `prefers-reduced-motion`: no scroll scrubs, springs, arcs, typing or packet animations; state changes still change colour and label.
 - Light and dark colour schemes via tokens in `src/app/globals.css`; the phone mockup, terminal bands and diagram use fixed colours like the real app.
 - The hero demo has a visible Pause control; loops pause off-screen and on hidden tabs.
+- Telegate mark: `public/brand/telegate-mark.svg` (generated from `../brand/telegate-mark.svg`); the icon PNGs in `public/brand` and `src/app/icon.png` are renders of it on ink.
 - Harness logos: Claude (Simple Icons, CC0), Codex and Grok (LobeHub, MIT), OpenClaw (official favicon, MIT), Hermes (caduceus glyph), Homies (own mark). Icons identify integrations, not endorsement.

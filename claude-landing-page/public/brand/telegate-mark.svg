@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  
+  <g transform="translate(0 0) scale(1)">
+    <!-- phone body with screen + home pill cut out -->
+    <path fill="#adf28f" fill-rule="evenodd" d="
+      M 314 272 H 566 A 84 84 0 0 1 650 356 V 826 A 84 84 0 0 1 566 910 H 314 A 84 84 0 0 1 230 826 V 356 A 84 84 0 0 1 314 272 Z
+      M 326 328 H 554 A 40 40 0 0 1 594 368 V 758 A 40 40 0 0 1 554 798 H 326 A 40 40 0 0 1 286 758 V 368 A 40 40 0 0 1 326 328 Z
+      M 406 838 H 474 A 16 16 0 0 1 490 854 A 16 16 0 0 1 474 870 H 406 A 16 16 0 0 1 390 854 A 16 16 0 0 1 406 838 Z"/>
+    <!-- soundwave -->
+    <rect x="311" y="483" width="58" height="176" rx="29" fill="#adf28f"/>
+    <rect x="411" y="418" width="58" height="306" rx="29" fill="#adf28f"/>
+    <rect x="511" y="483" width="58" height="176" rx="29" fill="#adf28f"/>
+    <!-- outbound arrow: shaft along the top bezel, head leaving the top-right corner -->
+    <path fill="#adf28f" stroke="#adf28f" stroke-width="28" stroke-linejoin="round" d="M 556 186 L 556 414 L 716 300 Z"/>
+    <rect x="330" y="272" width="240" height="56" fill="#adf28f"/>
+    <!-- check bubble with a tail toward the arrow -->
+    <path fill="#adf28f" stroke="#adf28f" stroke-width="20" stroke-linejoin="round" d="M 770 262 L 770 316 L 726 340 Z"/>
+    <rect x="762" y="92" width="228" height="228" rx="56" fill="#adf28f"/>
+    <path d="M 816 206 L 858 248 L 936 164" fill="none" stroke="#14212a" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

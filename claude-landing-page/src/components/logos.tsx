@@ -97,14 +97,28 @@ export function HomiesLogo({ title = "Homies", ...props }: IconProps) {
   );
 }
 
-/** Telegate — the app icon: mint handset arc, white outbound arrow on ink. */
-export function TelegateMark({ title = "Telegate", ...props }: IconProps) {
+/**
+ * Telegate — the mark: a phone with a soundwave, an outbound arrow, a check bubble.
+ * Shapes inherit currentColor; `tick` paints the check inside the bubble.
+ * Source of truth: brand/telegate-mark.svg in the repo root.
+ */
+export function TelegateMark({ title = "Telegate", tick = "#14212a", ...props }: IconProps & { tick?: string }) {
   return (
     <svg viewBox="0 0 1024 1024" role="img" aria-hidden={title ? undefined : true} {...props}>
       {title ? <title>{title}</title> : null}
-      <rect width="1024" height="1024" rx="224" fill="#14212a" />
-      <path d="M280 344h68c36 0 60 22 60 56v0c0 100 100 200 200 200h6c34 0 56 24 56 60v66c0 34-22 56-56 56h-40C378 782 244 648 244 452v-52c0-34 22-56 36-56z" fill="#adf28f" />
-      <path d="M528 470 748 250M600 232h164v164" stroke="#fff" strokeWidth="60" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M 314 272 H 566 A 84 84 0 0 1 650 356 V 826 A 84 84 0 0 1 566 910 H 314 A 84 84 0 0 1 230 826 V 356 A 84 84 0 0 1 314 272 Z M 326 328 H 554 A 40 40 0 0 1 594 368 V 758 A 40 40 0 0 1 554 798 H 326 A 40 40 0 0 1 286 758 V 368 A 40 40 0 0 1 326 328 Z M 406 838 H 474 A 16 16 0 0 1 490 854 A 16 16 0 0 1 474 870 H 406 A 16 16 0 0 1 390 854 A 16 16 0 0 1 406 838 Z"
+      />
+      <rect x="311" y="483" width="58" height="176" rx="29" fill="currentColor" />
+      <rect x="411" y="418" width="58" height="306" rx="29" fill="currentColor" />
+      <rect x="511" y="483" width="58" height="176" rx="29" fill="currentColor" />
+      <path fill="currentColor" stroke="currentColor" strokeWidth="28" strokeLinejoin="round" d="M 556 186 L 556 414 L 716 300 Z" />
+      <rect x="330" y="272" width="240" height="56" fill="currentColor" />
+      <path fill="currentColor" stroke="currentColor" strokeWidth="20" strokeLinejoin="round" d="M 770 262 L 770 316 L 726 340 Z" />
+      <rect x="762" y="92" width="228" height="228" rx="56" fill="currentColor" />
+      <path d="M 816 206 L 858 248 L 936 164" fill="none" stroke={tick} strokeWidth="36" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
