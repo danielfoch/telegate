@@ -10,6 +10,14 @@ Clone the repo, host your relay, bring your OpenAI key, and build onto your iPho
 
 **Developer preview:** physical-iPhone acceptance is still pending. See [verification](docs/VERIFICATION.md).
 
+**[Visit the Telegate landing page →](https://telegate.danielfoch.chatgpt.site)**
+
+## Install with your coding agent
+
+**[Copy the one-shot install prompt →](docs/INSTALL-WITH-AN-AGENT.md)**
+
+Paste it into Codex or Claude Code on your Mac. Your agent clones the repo, prepares the relay and native apps, installs to your iPhone when signing is ready, and guides pairing. Apple sign-in, device trust and signing approvals still require you. No invitation code is required.
+
 ## Start here
 
 1. [Host your relay](docs/SELF-HOST.md) on your own HTTPS infrastructure.
@@ -126,3 +134,7 @@ See [API contract](docs/API.md), [release and deployment](docs/RELEASE.md), and 
 ## License
 
 Telegate source is available under the [MIT License](LICENSE). Third-party dependencies retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).
+
+## Landing page
+
+The marketing site lives in [`website/`](website/README.md), with a static export and Vercel configuration. Hosting the landing page is separate from hosting the relay.

@@ -1,0 +1,1 @@
+Install Telegate on my iPhone from https://github.com/danielfoch/telegate. Follow docs/INSTALL-WITH-AN-AGENT.md, handle the setup you can, and guide me through pairing my computer and connecting my agents. Ask me only for what you can’t discover or do yourself.

@@ -69,3 +69,10 @@ Use [RELEASE.md](RELEASE.md) for physical-device and cross-network checks. A pub
 - Mac build passed; all 46 Node tests passed. The native window was visually checked with agent icons, pairing controls and the settings/editor sheets. Agent save, cancelled addition, invalid service validation and configuration rollback were exercised in the running app.
 - A legacy configuration without timeout/agent-ID fields was decoded and round-tripped through the current Swift model, preserving three agent IDs, project sharing and the service URL. The rebuilt app displayed all three entries and saved them successfully.
 - The failed pairing setup pointed at a loopback port with no relay listening. Starting a relay and exposing a temporary HTTPS tunnel restored `/health` and native pairing-code creation. This is a development recovery, not evidence of permanent hosting or a completed physical-phone pairing.
+
+## Landing page and guided install prompt (2026-09-12)
+
+- Added an animated, responsive marketing page with local optimized artwork/fonts, selectable voice examples, copyable installation prompt, phone illustration, and agent routing map. Motion can be paused and honors reduced-motion preferences.
+- Site static build, TypeScript check and lint passed. Prompt text is byte-matched between the site, plain-text prompt and GitHub guide; local integration/installation links resolve to files in the repo. Browser interaction/visual acceptance was not run in this pass.
+- The one-shot prompt starts a guided agent installation. Its procedure requires actual signed device installation and launch evidence before claiming success and calls out Apple sign-in/trust/Developer Mode, relay availability, BYOK and free-profile renewal. A clean-machine physical-iPhone run of this new guide has not been verified.
+- Cloud provider requirements are explicit: Grok Bot needs the relay adapter/routine/callback, and HomiesAI needs a compatible provider endpoint. ChatGPT voice helps plan; it is not represented as a standalone task-submission harness.
