@@ -121,6 +121,7 @@ final class VoiceSession: NSObject, ObservableObject {
               ? []
               : [
                 [
+                  "type": "message",
                   "role": "user",
                   "content": [
                     [

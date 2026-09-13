@@ -46,6 +46,18 @@ The included [Grok Bot / Clydesdale adapter](integrations/GROKBOT.md) runs insid
 
 The free DIY scheme uses in-app results. If you have the required Apple developer credentials, use the full Telegate scheme and the optional APNs secret mount described in [RELEASE.md](RELEASE.md). Push support remains in the open-source project; the planned paid offering is managed convenience, not a restriction on this code.
 
+## Same-Mac test relay with a temporary tunnel
+
+Before committing to a host, you can run the relay on the Mac that will also execute the work and expose it through a temporary Cloudflare quick tunnel:
+
+```sh
+brew install cloudflared
+scripts/local-relay.sh install   # starts now, restarts after crashes and logins
+scripts/local-relay.sh status    # current HTTPS address and health
+```
+
+The script needs `secrets/relay-preview.env` with `NODE_ENV=production`, `DATABASE_PATH`, and a `CALLBACK_SIGNING_KEY` (the deployment wizard’s `.env` values work). An optional `secrets/grokbot.env` enables the Grok Bot adapter. The address is a random `trycloudflare.com` hostname that changes every time the tunnel restarts; both apps let you update it without re-pairing (phone: **Settings → Change service address…**; Mac: pause the connection, then edit it in Settings). This is a test setup with no uptime guarantee, not a replacement for a hosted relay.
+
 ## Local development
 
 ```sh

@@ -5,7 +5,7 @@ import { validateService } from './client.mjs';
 const task={id:'job-1',title:'Literal prompt',prompt:'$(touch SHOULD_NOT_EXIST); `echo secret`\nKeep this literal.'};
 test('untrusted prompts go to stdin and never become shell code or command arguments',async()=>{
   const call=invocation(task,{kind:'codex',command:'codex',cwd:process.cwd()});
-  assert.deepEqual(call.args,['exec','--json','--approve-for-me','-']);assert.ok(!call.args.includes('--sandbox'));
+  assert.deepEqual(call.args,['exec','--json','--approve-for-me','--skip-git-repo-check','-']);assert.ok(!call.args.includes('--sandbox'));
   const result=await runTask(task,{kind:'command',command:process.execPath,args:['-e','process.stdin.pipe(process.stdout)'],cwd:process.cwd()});
   assert.equal(result.status,'completed');assert.ok(result.result.includes(task.prompt));
 });
@@ -26,11 +26,19 @@ test('remote service credentials only travel over HTTPS and redirects are not ac
 });
 test('follow-ups resume only an explicit saved session, never the last session or injected arguments',()=>{
   const adapter={kind:'codex',command:'codex',cwd:process.cwd()};
-  assert.deepEqual(invocation({...task,resumeRunId:'session-123'},adapter).args,['exec','--approve-for-me','resume','--json','session-123','-']);
-  assert.deepEqual(invocation({...task,resumeRunId:'session-123'},{...adapter,kind:'claude'}).args,['--print','--output-format','stream-json','--verbose','--resume','session-123']);
+  assert.deepEqual(invocation({...task,resumeRunId:'session-123'},adapter).args,['exec','--approve-for-me','--skip-git-repo-check','resume','--json','session-123','-']);
+  assert.deepEqual(invocation({...task,resumeRunId:'session-123'},{...adapter,kind:'claude'}).args,['--print','--output-format','stream-json','--verbose','--permission-mode','auto','--resume','session-123']);
   assert.throws(()=>invocation({...task,resumeRunId:'--last'},adapter),/session ID/);
 });
 
+test('approval policy is a local Connect setting; a brief cannot choose it and unknown values fall back to automatic review',()=>{
+  const claude={kind:'claude',command:'claude',cwd:process.cwd()},codex={kind:'codex',command:'codex',cwd:process.cwd()};
+  assert.deepEqual(invocation({...task,approvalMode:'bypass'},claude).args.slice(-2),['--permission-mode','auto']);
+  assert.deepEqual(invocation(task,{...claude,approvalMode:'edits'}).args.slice(-2),['--permission-mode','acceptEdits']);
+  assert.equal(invocation(task,{...claude,approvalMode:'bypass'}).args.includes('--permission-mode'),false);
+  assert.equal(invocation(task,{...codex,approvalMode:'bypass'}).args.includes('--approve-for-me'),false);
+  assert.deepEqual(invocation(task,{...codex,approvalMode:'not-a-mode'}).args,['exec','--json','--approve-for-me','--skip-git-repo-check','-']);
+});
 test('cloud brief includes scoped callbacks and explicit follow-up IDs without local command execution',async t=>{
   let sent;
   t.mock.method(globalThis,'fetch',async(url,init)=>{sent={url,...init,body:JSON.parse(init.body)};return Response.json({id:'saved-task',status:'accepted'});});
@@ -53,17 +61,17 @@ test('setup diagnostics explain missing executables and reject credential-bearin
   assert.equal(results[2].problem,undefined);
 });
 
-test('Codex setup checks CLI compatibility and project folder without starting a task',async t=>{
+test('Codex setup checks CLI compatibility and accepts explicitly chosen non-Git folders',async t=>{
   const {mkdtemp,writeFile,rm}=await import('node:fs/promises');
   const {tmpdir}=await import('node:os');
   const {join}=await import('node:path');
   const dir=await mkdtemp(join(tmpdir(),'telegate-cli-check-'));
   t.after(()=>rm(dir,{recursive:true,force:true}));
   const command=join(dir,'fake-codex');
-  await writeFile(command,'#!/usr/bin/env node\nif(process.argv.slice(2).join(" ")!=="exec --help") process.exit(8); console.log("--json --approve-for-me");',{mode:0o700});
+  await writeFile(command,'#!/usr/bin/env node\nif(process.argv.slice(2).join(" ")!=="exec --help") process.exit(8); console.log("--json --approve-for-me --skip-git-repo-check");',{mode:0o700});
   const [h]=await available([{id:'codex',name:'Codex',kind:'codex',command,cwd:dir}]);
-  assert.equal(h.enabled,false);
-  assert.match(h.problem,/Git project folder/);
+  assert.equal(h.enabled,true);
+  assert.equal(h.problem,undefined);
   const old=join(dir,'old-codex');
   await writeFile(old,'#!/usr/bin/env node\nconsole.log("--json");',{mode:0o700});
   const [legacy]=await available([{id:'old',name:'Old',kind:'codex',command:old,cwd:dir}]);

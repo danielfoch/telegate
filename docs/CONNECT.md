@@ -4,10 +4,14 @@ Your desk, on call. Keep Connect running on the Mac that will do the work, then 
 
 1. Open **Settings**. Name your computer and enter your relay’s HTTPS service address. Use that same address when signing into the phone app. The relay must already be running; Connect does not host it for you.
 2. Under **Add an agent**, choose Codex, Claude Code, OpenClaw, Hermes Agent, Grok Bot, or Other agent. Local agents use their existing installation and login. Choose a project folder and optionally share its metadata with voice. Grok Bot and other cloud services need their connection URL and key.
-3. Click **Pair my phone**. On your phone, open **Computers → Add computer**, enter the code, and confirm this Mac’s name. Pairing codes expire after ten minutes. Copy buttons let you copy the code and service address separately.
+3. Run **Check setup** to verify the relay, executable and required CLI options. Correct any per-agent issue, then click **Pair my phone**. On your phone, open **Computers → Add computer**, enter the code, and confirm this Mac’s name. Pairing codes expire after ten minutes. Copy buttons let you copy the code and service address separately.
 4. Leave Connect open and your Mac awake. The phone’s computer status confirms the relay is receiving heartbeats. **Pause connection** stops the local connector; pause before changing agent settings.
 
-**Configure** opens one agent’s settings. Changes apply only when saved; Cancel leaves the current configuration intact. Executable paths, custom arguments, OpenClaw agent selection and time limits are under **Advanced settings**. Removing an agent removes its Connect entry; it does not uninstall the agent.
+**Configure** opens one agent’s settings. Changes apply only when saved; Cancel leaves the current configuration intact. For Codex and Claude Code, **Approvals** chooses how the agent handles permission prompts while it runs unattended: **Automatic review** (default; `codex exec --approve-for-me` inside the workspace sandbox, or Claude Code’s `--permission-mode auto`), **File edits only** (Claude Code accepts edits and declines commands that need approval, so some tasks come back needing attention), or **Full access, no sandbox** for folders you fully trust. A brief can never change this setting. Executable paths, custom arguments, OpenClaw agent selection and time limits are under **Advanced settings**. Removing an agent removes its Connect entry; it does not uninstall the agent.
+
+The main card shows the service address with a **Copy address** button so you can paste it into the phone. If the address changes (for example a restarted temporary tunnel), pause the connection, change it in **Settings**, and start again; the pairing stays valid because it belongs to the relay, not to the hostname.
+
+Codex and Claude use their CLI’s automatic approval review by default. Claude can instead accept edits while reviewing other actions. The bypass option is an explicit local choice and is never enabled by the phone. A connection test checks routing; a small file-writing task in a disposable folder confirms actual editing permissions.
 
 **Open at login** starts the app at login. **Activity** shows connector details for troubleshooting.
 

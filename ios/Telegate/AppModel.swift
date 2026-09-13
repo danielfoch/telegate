@@ -59,6 +59,10 @@ import UserNotifications
       login = decoded
     }
     hasKey = loadSavedState && SecureStore.get("openai") != nil
+    #if DEBUG
+      // Preview skips the setup screen without claiming a key exists or enabling paid calls.
+      if ProcessInfo.processInfo.arguments.contains("--ui-preview-without-key") { deferVoiceSetup = true }
+    #endif
     if loadSavedState { loadPending() }
     voice.onDelegation = { [weak self] id in
       guard let self else { return }
@@ -367,15 +371,43 @@ import UserNotifications
     let _: OK = try await api.request("/v1/devices/scan", body: body)
     try await refresh()
   }
-  func signOut() async throws {
+  func signOut() async {
     voice.end()
     await delegationWork?.value
-    if let pushToken {
-      let _: OK = try await api.request(
-        "/v1/notifications/unregister", body: ["token": pushToken, "environment": pushEnvironment])
-    }
-    let _: OK = try await api.request("/v1/auth/logout", body: [:])
+    let client = api
+    let registration = pushToken
     clearAccount()
+    // Best effort: the relay may be unreachable (for example after a tunnel address changed).
+    // Local credentials are removed either way, so nobody is ever stuck signed in.
+    if let registration {
+      let _: OK? = try? await client.request(
+        "/v1/notifications/unregister", body: ["token": registration, "environment": pushEnvironment])
+    }
+    let _: OK? = try? await client.request("/v1/auth/logout", body: [:])
+  }
+  /// Points this installation at a relay address. The signed-in session is kept when the same
+  /// relay answers at the new address (for example a renewed tunnel hostname). Otherwise the
+  /// previous address is restored and the error explains how to move to a different relay.
+  func changeService(_ value: String) async throws {
+    guard let normalized = AppConfiguration.normalizedService(value) else {
+      throw UserFacingError(
+        message: "Enter your relay’s HTTPS address, such as https://relay.example.com.")
+    }
+    let previous = UserDefaults.standard.string(forKey: "serviceURL")
+    UserDefaults.standard.set(normalized, forKey: "serviceURL")
+    guard login != nil else {
+      objectWillChange.send()
+      return
+    }
+    do { try await refresh() } catch {
+      UserDefaults.standard.set(previous, forKey: "serviceURL")
+      throw UserFacingError(
+        message:
+          "\(error.localizedDescription) The previous address was kept. To move to a different relay, sign out first and enter its address when you sign in."
+      )
+    }
+    error = nil
+    objectWillChange.send()
   }
   func deleteAccount(password: String) async throws {
     voice.end()

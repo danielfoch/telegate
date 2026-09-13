@@ -15,17 +15,15 @@ function harnessEnvironment() {
   return env;
 }
 async function inspectLocalCLI(h) {
-  const key = JSON.stringify([h.kind, h.command, h.cwd]);
+  const key = JSON.stringify([h.kind, h.command, h.cwd, h.approvalMode]);
   if (!cliChecks.has(key)) cliChecks.set(key, (async () => {
     try {
       const {stdout, stderr} = await exec(h.command, h.kind === 'codex' ? ['exec', '--help'] : ['--help'], {cwd:h.cwd, timeout:10000, maxBuffer:256000});
       const help = stdout + stderr;
-      const flags = h.kind === 'codex' ? ['--json', '--approve-for-me'] : ['--print', '--output-format', '--resume'];
+      const flags = h.kind === 'codex'
+        ? ['--json', '--skip-git-repo-check', h.approvalMode === 'bypass' ? '--dangerously-bypass-approvals-and-sandbox' : '--approve-for-me']
+        : ['--print', '--output-format', '--resume', h.approvalMode === 'bypass' ? '--dangerously-skip-permissions' : '--permission-mode'];
       if (!flags.every(flag => help.includes(flag))) return 'Update this agent: its CLI is missing required delegation options.';
-      if (h.kind === 'codex') {
-        try { await exec('git', ['rev-parse', '--show-toplevel'], {cwd:h.cwd, timeout:5000}); }
-        catch { return 'Choose a Git project folder for Codex in Configure.'; }
-      }
     } catch { return 'Cannot start this agent. Check its executable and installation.'; }
   })());
   return cliChecks.get(key);
@@ -43,8 +41,16 @@ export function invocation(task, adapter, options={}) {
     if(!adapter.command||!adapter.cwd)throw new Error('Choose an executable and working folder on this computer.');
     return agentInvocation(task,adapter,input,options);
   }
-  const args=adapter.kind==='codex'?(resume?['exec','--approve-for-me','resume','--json',resume,'-']:['exec','--json','--approve-for-me','-']):
-    adapter.kind==='claude'?['--print','--output-format','stream-json','--verbose',...(resume?['--resume',resume]:[])]:adapter.args;
+  // Approval policy is a local, per-harness choice made in Connect; a brief can never widen it.
+  // auto (default): Codex automatic review inside its workspace sandbox / Claude Code auto mode.
+  // edits: Claude Code accepts file edits only; commands that need approval are denied non-interactively.
+  // bypass: no sandbox or approval prompts at all — the user's explicit choice for a trusted folder.
+  const approval=['auto','edits','bypass'].includes(adapter.approvalMode)?adapter.approvalMode:'auto';
+  const codexApproval=approval==='bypass'?['--dangerously-bypass-approvals-and-sandbox']:['--approve-for-me'];
+  const claudeApproval=approval==='bypass'?['--dangerously-skip-permissions']:['--permission-mode',approval==='edits'?'acceptEdits':'auto'];
+  // --skip-git-repo-check: a chosen work folder is not always a Git checkout; refusing there is a confusing failure.
+  const args=adapter.kind==='codex'?(resume?['exec',...codexApproval,'--skip-git-repo-check','resume','--json',resume,'-']:['exec','--json',...codexApproval,'--skip-git-repo-check','-']):
+    adapter.kind==='claude'?['--print','--output-format','stream-json','--verbose',...claudeApproval,...(resume?['--resume',resume]:[])]:adapter.args;
   if (!['codex','claude','command'].includes(adapter.kind)||!Array.isArray(args)||!args.every(a=>typeof a==='string')) throw new Error('Invalid local harness configuration.');
   if (!adapter.command || !adapter.cwd) throw new Error('Choose an executable and working folder on this computer.');
   return {command:adapter.command,args,input};

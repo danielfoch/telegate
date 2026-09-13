@@ -4,7 +4,7 @@ Readiness audit started September 12, 2026. This document records evidence, not 
 
 ## First test
 
-1. Use the latest **TelegateDIY** iPhone build and **Telegate Connect** Mac build from the combined readiness worktree. An older installed app will not show the new controls.
+1. The combined **TelegateDIY** build is installed on Daniel’s iPhone. Open **Start Telegate.command** in `/Users/danielfoch/Documents/ChatGPT/Telegate` to check the current relay, copy its address and open the updated **Telegate Connect** from `~/Applications/Telegate Connect.app`. Unlock the phone and open Telegate.
 2. The phone and Mac must use the same reachable HTTPS relay address. Temporary Cloudflare addresses change after the tunnel restarts. Keep the relay, tunnel and Mac awake; a permanent relay is required for dependable everyday use.
 3. Create or sign in to your Telegate account on the phone. Save the recovery key when registering. No invitation code is required. You can choose **Set up my computers first** before adding your voice key.
 4. On the Mac, add an agent, choose its project folder, and give each destination a distinct name (for example, “Codex · Telegate” and “Claude · Website”). Install and sign in to each agent through its normal CLI first. Use **Check setup** to check the relay, executable and required CLI options. This read-only check does not verify billing or run a model.
@@ -17,19 +17,20 @@ Readiness audit started September 12, 2026. This document records evidence, not 
 
 ## Verified during this audit
 
-- 51 Node tests pass on macOS and Linux / Node 24 Alpine.
+- 52 Node tests pass on both macOS and Linux / Node 24 Alpine for the combined changes.
 - Eight native iOS tests pass with simulator signing, including actual Keychain save/read/update, concurrent delivery retries, preservation after delivery errors and account-change safety.
 - Signed simulator sign-in and a complete UI text-task → relay → companion → completed-result round trip pass against an isolated in-memory relay and harmless fixture agent.
-- Mac app builds. CLI setup diagnostics report installed Codex and Claude correctly and give an actionable missing-agent reason.
+- Mac app builds and its installed bundle passes code-signature validation. Bundled CLI diagnostics recognize all three existing Codex/Claude entries; an isolated missing-agent fixture gives an actionable reason.
 - Real Codex and Claude initial requests and exact-session resumption pass.
 - Real Codex file creation and follow-up edit pass; both artifacts were inspected in a disposable Git project.
 - Original Claude noninteractive file creation was blocked by permissions. The concurrent agent's automatic-review implementation passed real file creation and exact-session follow-up editing.
-- A development-signed physical iPhone build passed using the existing Apple team. This is distinct from installation and microphone acceptance.
+- The final development-signed iPhone build was installed successfully under the existing app ID and Apple team. First launch was blocked explicitly by the device lock; microphone/voice acceptance remains pending.
+- The existing launchd-managed relay and its current HTTPS tunnel both return healthy responses. A disposable test of the updated helper verifies that unhealthy service addresses are not published and shutdown clears a stale address.
 - Landing-page static build, lint and TypeScript checks pass. Updated affected dependencies; `npm audit` reports zero known vulnerabilities for that lockfile.
 
 ## Remaining acceptance and prerequisites
 
-- The physical iPhone must be unlocked and the final combined build installed. The Mac locked during final native visual review, so that review must resume after unlock.
+- Unlock the physical iPhone and open the installed app. The Mac locked during final native visual review, so that review must resume after unlock.
 - No live OpenAI voice session has been tested with Daniel's key in this audit. Model access, available API credit, audio routing, microphone permission and actual speech-to-delegation remain first-call acceptance.
 - Full APNs delivery has not been verified. **DIY intentionally uses in-app results and has no background push notifications.** For push, use the full build with an Apple Developer team, matching app ID and APNs credentials on the relay.
 - OpenClaw is not installed on this Mac. Its adapter is covered by automated tests; a real configured gateway must pass its own connection test.
@@ -37,6 +38,7 @@ Readiness audit started September 12, 2026. This document records evidence, not 
 - Grok Bot needs its configured submission endpoint, bearer key, routine and completion callback. The earlier temporary callback test was held by provider approval. Confirm the routine uses the current relay address and produces a completed task.
 - HomiesAI requires a Telegate-compatible task endpoint. It is not a finished native connector merely because it appears in the marketing examples.
 - Windows companion execution and full iPad/Dynamic Type/VoiceOver acceptance remain unverified.
+- Landing-page browser acceptance remains pending: the headless browser daemon did not complete navigation. Static build/lint/types passed, but those checks do not establish visual correctness.
 
 ## Fixes in this audit
 
@@ -51,11 +53,21 @@ Readiness audit started September 12, 2026. This document records evidence, not 
 - Keychain errors explain signing requirements; signed simulator tests exercise real credential persistence.
 - Fixed a teardown race in the integration test fixture that deleted its config before stopping the connector.
 - Landing-page dependency security updates preserve the existing static-export architecture.
+- Combined concurrent changes include explicit local agent approval modes, service-address paste/correction, best-effort local sign-out, and the missing GPT-Live startup message type.
+- The local relay helper clears stale addresses and returns failure when the tunnel cannot reach a healthy relay.
 
 ## Sources and limits
 
-Runtime logs and disposable acceptance reports are in the readiness worktree's ignored `outputs/` directory and `/tmp/telegate-readiness-*.log`. No user API key or production account token is included in this document. All created harness artifacts were removed with their disposable project folders.
+Runtime logs are archived in `outputs/readiness-evidence/`; disposable acceptance reports and a signed iPhone reinstall bundle are also in the readiness worktree’s ignored `outputs/` directory. No user API key or production account token is included in this document. All created harness artifacts were removed with their disposable project folders.
 
 Voice protocol checked against [OpenAI GPT-Live](https://developers.openai.com/api/docs/guides/live), [WebRTC](https://developers.openai.com/api/docs/guides/voice-webrtc?api=live) and [client delegation](https://developers.openai.com/api/docs/guides/live-delegation?delegation-mode=client). Dependency fixes include the [React advisory](https://github.com/advisories/GHSA-wx67-qw84-cm4g). A clean audit is a check for known advisories, not proof of complete security.
 
 Source changes are prepared locally. Updating the marketing website's source copy does not update the separately owned published site.
+
+## Concurrent checkout handoff
+
+The tested source is `/Users/danielfoch/Documents/ChatGPT/Telegate/app` on `codex/tomorrow-readiness`. Claude’s active source remains `/Users/danielfoch/.local/share/telegate`. The installed native apps use the combined readiness source. The running launchd relay still uses the primary checkout; its readiness server fixes must be reconciled and restarted after checking Claude’s current work. Do not replace the primary checkout wholesale or discard its uncommitted changes.
+
+The primary checkout subsequently introduced a simulator-only plaintext credential fallback. It is intentionally excluded here: ad-hoc simulator signing resolved error -34018 and all eight native tests passed against the actual Keychain. Keep the signed simulator workflow so development exercises the same credential storage behavior as the device.
+
+A one-hour follow-up is scheduled to compare new changes, reconcile safely and refresh the builds. The existing installation is usable for tomorrow’s manual first-call check, but this record does not claim a successful voice call or perfect UI acceptance.

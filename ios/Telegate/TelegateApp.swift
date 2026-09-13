@@ -92,6 +92,8 @@ struct OnboardingView: View {
   @State private var key = ""
   @State private var recovery = ""
   @State private var service = AppConfiguration.service
+  // Open the address field automatically when this build has no usable relay address yet.
+  @State private var showService = AppConfiguration.validService(AppConfiguration.service) == nil
   @State private var mode = "register"
   @State private var busy = false
   @State private var error: String?
@@ -124,13 +126,34 @@ struct OnboardingView: View {
               ).textContentType(mode == "login" ? .password : .newPassword)
               if mode == "recover" { SecureField("Recovery key", text: $recovery) }
             }.padding(20).background(.white, in: RoundedRectangle(cornerRadius: 20))
-            DisclosureGroup("Service address") {
-              TextField("HTTPS address from your administrator", text: $service).keyboardType(.URL)
-                .textInputAutocapitalization(.never).autocorrectionDisabled()
-              Text(
-                "Use the same Telegate service address on your phone and computer."
-              ).font(.caption).foregroundStyle(.secondary)
-            }
+            DisclosureGroup(isExpanded: $showService) {
+              VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 10) {
+                  TextField("https://your-relay.example.com", text: $service).keyboardType(.URL)
+                    .textContentType(.URL).textInputAutocapitalization(.never)
+                    .autocorrectionDisabled().submitLabel(.done)
+                  PasteButton(payloadType: String.self) { strings in
+                    if let pasted = strings.first {
+                      service = pasted.trimmingCharacters(in: .whitespacesAndNewlines)
+                    }
+                  }.labelStyle(.iconOnly).buttonBorderShape(.capsule)
+                    .accessibilityLabel("Paste service address")
+                }
+                Text(AppConfiguration.serviceHint).font(.caption).foregroundStyle(.secondary)
+                if !service.isEmpty && AppConfiguration.normalizedService(service) == nil {
+                  Text("Use the full HTTPS address without a path, for example https://relay.example.com.")
+                    .font(.caption).foregroundStyle(.red)
+                }
+              }.padding(.top, 10)
+            } label: {
+              VStack(alignment: .leading, spacing: 3) {
+                Text("Service address").font(.headline)
+                Text(
+                  AppConfiguration.normalizedService(service).flatMap { URL(string: $0)?.host }
+                    ?? "Not set yet · enter your relay address"
+                ).font(.caption).foregroundStyle(.secondary)
+              }
+            }.padding(20).background(.white, in: RoundedRectangle(cornerRadius: 20))
             Button {
               Task { await authenticate() }
             } label: {
@@ -164,7 +187,7 @@ struct OnboardingView: View {
               .frame(maxWidth: .infinity).padding(.vertical, 8)
             Button("Sign out") {
               Task {
-                do { try await model.signOut() } catch { self.error = error.localizedDescription }
+                await model.signOut()
               }
             }.font(.footnote).disabled(busy)
           }
@@ -203,11 +226,13 @@ struct OnboardingView: View {
     busy = true
     error = nil
     defer { busy = false }
-    guard AppConfiguration.validService(service) != nil else {
-      error = "Enter the HTTPS service address supplied for this build."
+    guard let normalized = AppConfiguration.normalizedService(service) else {
+      showService = true
+      error = "Enter your relay’s HTTPS address first."
       return
     }
-    UserDefaults.standard.set(service, forKey: "serviceURL")
+    service = normalized
+    UserDefaults.standard.set(normalized, forKey: "serviceURL")
     do {
       recoveryToSave = try await model.authenticate(
         username: username, password: password, mode: mode,
@@ -647,6 +672,54 @@ struct TaskDetail: View {
     Task { await model.startVoice(followup: task, readSummary: read) }
   }
 }
+struct ServiceAddressSheet: View {
+  @EnvironmentObject var model: AppModel
+  @Environment(\.dismiss) private var dismiss
+  @State private var value = AppConfiguration.service
+  @State private var busy = false
+  @State private var error: String?
+  var body: some View {
+    NavigationStack {
+      Form {
+        Section {
+          HStack(spacing: 10) {
+            TextField("https://your-relay.example.com", text: $value).keyboardType(.URL)
+              .textContentType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+            PasteButton(payloadType: String.self) { strings in
+              if let pasted = strings.first {
+                value = pasted.trimmingCharacters(in: .whitespacesAndNewlines)
+              }
+            }.labelStyle(.iconOnly).buttonBorderShape(.capsule)
+              .accessibilityLabel("Paste service address")
+          }
+        } header: {
+          Text("Relay address")
+        } footer: {
+          Text(
+            "Use this when your relay’s address changed, for example after a temporary tunnel restarted. You stay signed in when the same relay answers at the new address. To move to a different relay, sign out first and enter its address when you sign in."
+          )
+        }
+        if let error { Text(error).foregroundStyle(.red) }
+        Button {
+          Task {
+            busy = true
+            defer { busy = false }
+            do {
+              try await model.changeService(value)
+              dismiss()
+            } catch { self.error = error.localizedDescription }
+          }
+        } label: {
+          HStack {
+            if busy { ProgressView() }
+            Text("Save and reconnect")
+          }
+        }.disabled(busy || AppConfiguration.normalizedService(value) == nil)
+      }.navigationTitle("Service address").navigationBarTitleDisplayMode(.inline)
+        .toolbar { Button("Cancel") { dismiss() } }
+    }
+  }
+}
 struct SettingsView: View {
   @EnvironmentObject var model: AppModel
   @State private var key = ""
@@ -654,6 +727,7 @@ struct SettingsView: View {
   @State private var error: String?
   @State private var busy = false
   @State private var deleting = false
+  @State private var changingService = false
   var body: some View {
     NavigationStack {
       Form {
@@ -696,13 +770,14 @@ struct SettingsView: View {
           }.disabled(key.isEmpty || busy || model.voice.state != .idle)
         }
         Section("Account") {
-          Text(model.login?.username ?? "")
-          Text(AppConfiguration.service).font(.caption).textSelection(.enabled)
-          Button("Sign out") {
-            Task {
-              do { try await model.signOut() } catch { self.error = error.localizedDescription }
-            }
-          }.disabled(busy || model.busy)
+          LabeledContent("Signed in as", value: model.login?.username ?? "")
+          LabeledContent("Service address") {
+            Text(URL(string: AppConfiguration.service)?.host ?? AppConfiguration.service)
+              .font(.caption).textSelection(.enabled).multilineTextAlignment(.trailing)
+          }
+          Button("Change service address…") { changingService = true }.disabled(
+            model.voice.state != .idle || model.busy)
+          Button("Sign out") { Task { await model.signOut() } }.disabled(busy || model.busy)
           Button("Delete account", role: .destructive) { deleting = true }.disabled(model.busy)
         }
         Section(AppConfiguration.supportsPush ? "Completion notifications" : "Completion updates") {
@@ -728,6 +803,7 @@ struct SettingsView: View {
       }.navigationTitle("Settings").onChange(of: model.autoSend) { _, value in
         UserDefaults.standard.set(value, forKey: "autoSend")
       }
+      .sheet(isPresented: $changingService) { ServiceAddressSheet() }
       .sheet(isPresented: $deleting) {
         NavigationStack {
           Form {

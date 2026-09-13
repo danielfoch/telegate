@@ -32,11 +32,13 @@ struct LocalHarness: Codable, Identifiable {
   var shareProjectContext = false
   var timeoutMinutes = 240
   var agentId: String?
+  // How Codex / Claude Code handle approvals when they run unattended: auto, edits, or bypass.
+  var approvalMode = "auto"
   var summary: Harness { Harness(id: id, name: name, kind: kind, enabled: enabled) }
   init() {}
   private enum CodingKeys: String, CodingKey {
     case id, name, kind, enabled, command, cwd, args, url, token, shareProjectContext,
-      timeoutMinutes, agentId
+      timeoutMinutes, agentId, approvalMode
   }
   init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -53,6 +55,7 @@ struct LocalHarness: Codable, Identifiable {
     // Early Connect builds did not write these fields. Preserve their saved agents.
     timeoutMinutes = try values.decodeIfPresent(Int.self, forKey: .timeoutMinutes) ?? 240
     agentId = try values.decodeIfPresent(String.self, forKey: .agentId)
+    approvalMode = try values.decodeIfPresent(String.self, forKey: .approvalMode) ?? "auto"
   }
 }
 struct ComputerConfiguration: Codable {
@@ -324,6 +327,33 @@ struct ComputerConfiguration: Codable {
     }
   }
 }
+#if DEBUG
+  // Design review only: `--render-preview main|editor|settings <file.png>` captures the real
+  // window (or its open sheet) shortly after launch, writes a PNG, and exits. It opens a sheet
+  // without saving anything and never changes the stored configuration.
+  @MainActor enum DesignPreviewCapture {
+    static var requested: (screen: String, path: String)? {
+      let arguments = CommandLine.arguments
+      guard let index = arguments.firstIndex(of: "--render-preview"), index + 2 < arguments.count
+      else { return nil }
+      return (arguments[index + 1], arguments[index + 2])
+    }
+    static func capture(to path: String) async {
+      try? await Task.sleep(for: .seconds(1.5))
+      let window = NSApp.windows.first { $0.isVisible && !($0 is NSPanel) }
+      let target = window?.attachedSheet ?? window
+      guard let view = target?.contentView,
+        let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds)
+      else { exit(2) }
+      view.cacheDisplay(in: view.bounds, to: rep)
+      let png = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:])
+      do {
+        try png?.write(to: URL(fileURLWithPath: path))
+        exit(0)
+      } catch { exit(3) }
+    }
+  }
+#endif
 private enum ConnectStyle {
   static let ink = Color(red: 0.12, green: 0.18, blue: 0.15)
   static let accent = Color(red: 0.22, green: 0.36, blue: 0.26)
@@ -433,6 +463,14 @@ struct ConnectView: View {
       footer
     }
     .background(ConnectStyle.canvas).tint(ConnectStyle.accent)
+    #if DEBUG
+      .task {
+        guard let preview = DesignPreviewCapture.requested else { return }
+        if preview.screen == "editor" { editing = model.harnesses.first ?? AgentBrand.claude.harness(service: model.service) }
+        if preview.screen == "settings" { showSettings = true }
+        await DesignPreviewCapture.capture(to: preview.path)
+      }
+    #endif
     .sheet(item: $editing) { harness in
       AgentEditor(model: model, original: harness)
     }
@@ -508,6 +546,22 @@ struct ConnectView: View {
           }
         }.padding(18).background(ConnectStyle.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: 16))
       } else {
+        if let address = AppConfiguration.normalizedService(model.service) {
+          VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+              Image(systemName: "link").foregroundStyle(.secondary)
+              Text(address).font(.system(.callout, design: .monospaced)).textSelection(.enabled)
+                .lineLimit(1).truncationMode(.middle)
+              Spacer(minLength: 8)
+              Button("Copy address", systemImage: "doc.on.doc") { copy(address) }
+                .buttonStyle(.borderless).help("Copy the service address to enter on your phone")
+            }
+            Text(address.contains("trycloudflare.com")
+                 ? "Temporary test address. Enter this same address on your phone. If it changes after a restart, update it here and in the phone’s Settings."
+                 : "Enter this same address on your phone.")
+              .font(.caption).foregroundStyle(address.contains("trycloudflare.com") ? .orange : .secondary)
+          }.padding(14).background(ConnectStyle.accent.opacity(0.05), in: RoundedRectangle(cornerRadius: 14))
+        }
         HStack(spacing: 18) {
           Text(model.deviceId == nil
                ? "Pair your phone. Pick your agents.\nSend work from wherever inspiration finds you."
@@ -598,6 +652,10 @@ struct ConnectView: View {
       }
     }
   }
+  private func copy(_ value: String) {
+    NSPasteboard.general.clearContents()
+    NSPasteboard.general.setString(value, forType: .string)
+  }
   private var footer: some View {
     HStack {
       Toggle("Open at login", isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) }))
@@ -670,6 +728,14 @@ private struct AgentEditor: View {
             Text("Work runs in your OpenClaw agent’s own workspace. This folder is used for project awareness.")
               .font(.caption).foregroundStyle(.secondary)
           }
+          if ["codex", "claude"].contains(draft.kind) {
+            Picker("Approvals", selection: $draft.approvalMode) {
+              Text("Automatic review (recommended)").tag("auto")
+              if draft.kind == "claude" { Text("File edits only").tag("edits") }
+              Text("Full access, no sandbox").tag("bypass")
+            }
+            Text(approvalNote).font(.caption).foregroundStyle(draft.approvalMode == "bypass" ? .orange : .secondary)
+          }
           DisclosureGroup("Advanced settings", isExpanded: $advanced) {
             TextField("Executable", text: $draft.command)
             if draft.kind == "openclaw" {
@@ -699,6 +765,18 @@ private struct AgentEditor: View {
       }
     }.padding(24).frame(width: 560, height: 550).tint(ConnectStyle.accent)
   }
+  private var approvalNote: String {
+    switch (draft.kind, draft.approvalMode) {
+    case ("codex", "bypass"), ("claude", "bypass"):
+      "Runs with no sandbox and no approval prompts. Only for folders you fully trust."
+    case ("claude", "edits"):
+      "Claude Code edits files on its own. Commands that need approval are denied while unattended, so some tasks come back needing attention."
+    case ("claude", _):
+      "Claude Code auto mode approves routine actions itself and declines risky ones. Requires a Claude Code version and plan with auto mode."
+    default:
+      "Codex reviews its own commands inside its workspace sandbox, the same as codex exec --approve-for-me."
+    }
+  }
   private func commit(remove: Bool = false) {
     let previous = model.harnesses
     model.harnesses.removeAll { $0.id == draft.id }
@@ -725,8 +803,10 @@ private struct ConnectSettings: View {
       Form {
         TextField("Computer name", text: $name).disabled(model.connected || model.pair != nil)
         Section("Telegate service") {
-          TextField("HTTPS address", text: $service).disabled(model.deviceId != nil || model.pair != nil)
-          Text("Use the same address in the phone app. Your self-hosted service connects the two devices.")
+          TextField("HTTPS address", text: $service).disabled(model.connected || model.pair != nil)
+          Text(model.connected
+               ? "Pause the connection to change this address."
+               : "Use the same address in the phone app. Your pairing stays valid when the same relay answers at a new address.")
             .font(.caption).foregroundStyle(.secondary)
           if model.service.contains("trycloudflare.com") {
             Text("This is a temporary test address. Keep the relay and tunnel running; a permanent host is needed for everyday use.")
@@ -738,7 +818,7 @@ private struct ConnectSettings: View {
           Link("Install Node.js 24 or newer", destination: URL(string: "https://nodejs.org/en/download")!)
           if model.deviceId != nil {
             Button("Unpair this Mac") { model.resetPairing() }.disabled(model.connected)
-            Text("Pause the connection first. Pair again to change services.").font(.caption).foregroundStyle(.secondary)
+            Text("Pause the connection first. Unpair only when moving to a different relay or account.").font(.caption).foregroundStyle(.secondary)
           }
         }
       }.formStyle(.grouped)
@@ -748,7 +828,8 @@ private struct ConnectSettings: View {
         Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
         Button("Save") {
           let previous = (model.service, model.name, model.node)
-          model.service = service.trimmingCharacters(in: .whitespacesAndNewlines)
+          let trimmed = service.trimmingCharacters(in: .whitespacesAndNewlines)
+          model.service = AppConfiguration.normalizedService(trimmed) ?? trimmed
           model.name = name
           model.node = node
           do { try model.save(); model.error = nil; dismiss() }

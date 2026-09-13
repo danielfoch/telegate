@@ -1,6 +1,6 @@
 # Verification record
 
-Checked locally on 12 September 2026. This is a native pilot source implementation, not a deployed or TestFlight-verified release.
+Checked locally on 12 September 2026. This is a development installation, not a TestFlight-verified release. The entries below retain earlier audit evidence; the current combined readiness results are in [Tomorrow’s test](TOMORROW-READINESS.md).
 
 | Check | Result |
 | --- | --- |
@@ -76,3 +76,12 @@ Use [RELEASE.md](RELEASE.md) for physical-device and cross-network checks. A pub
 - Site static build, TypeScript check and lint passed. Prompt text is byte-matched between the site, plain-text prompt and GitHub guide; local integration/installation links resolve to files in the repo. Browser interaction/visual acceptance was not run in this pass.
 - The one-shot prompt starts a guided agent installation. Its procedure requires actual signed device installation and launch evidence before claiming success and calls out Apple sign-in/trust/Developer Mode, relay availability, BYOK and free-profile renewal. A clean-machine physical-iPhone run of this new guide has not been verified.
 - Cloud provider requirements are explicit: Grok Bot needs the relay adapter/routine/callback, and HomiesAI needs a compatible provider endpoint. ChatGPT voice helps plan; it is not represented as a standalone task-submission harness.
+
+## Combined tomorrow-readiness audit (late September 12, 2026)
+
+- 52 relay/connector/setup tests pass on macOS and Node 24 Alpine with Git installed. Eight signed simulator tests pass, including actual Keychain operations and delivery concurrency/account-change protection.
+- Signed simulator account setup and a complete text-task round trip were exercised against an isolated fixture relay. Real Codex and Claude initial requests, exact-session resumption, file creation and follow-up editing were verified in disposable folders. Claude needed the concurrent automatic-approval implementation for its editing test to pass.
+- The combined Mac app builds, passes signature validation and is copied to Daniel’s Applications folder. The combined development-signed iPhone app is installed on the connected physical phone. Apple blocked first launch because the phone is locked. No microphone, live BYOK, Action Button or APNs acceptance is claimed.
+- The active launchd relay and public tunnel are healthy. The revised helper was exercised with isolated process/network fixtures: it only publishes a healthy address, returns failure for an unhealthy relay and clears the address on shutdown.
+- Landing-page dependency updates pass static build/lint/types and report zero known npm advisories. Browser navigation failed in the headless daemon, so final website visual acceptance remains pending.
+- Changes were combined in an isolated worktree while Claude continued editing the primary checkout. See the current checklist for installation paths, limitations and required first-call tests.

@@ -26,6 +26,17 @@ enum AppConfiguration {
     #endif
     return nil
   }
+  /// Trims pasted whitespace and reduces a valid service address to its origin
+  /// (`https://host[:port]`), so a trailing slash or stray newline never breaks a request.
+  static func normalizedService(_ value: String) -> String? {
+    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard let u = validService(trimmed), let scheme = u.scheme, let host = u.host else {
+      return nil
+    }
+    return "\(scheme)://\(host)" + (u.port.map { ":\($0)" } ?? "")
+  }
+  static let serviceHint =
+    "This is the HTTPS address of your Telegate relay. Telegate Connect on your Mac shows it under Settings; a self-hosted relay prints it at startup."
 }
 final class NoRedirect: NSObject, URLSessionTaskDelegate {
   func urlSession(

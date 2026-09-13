@@ -8,7 +8,7 @@ Talk it through. Send it off. Get back to your day.
 
 Clone the repo, host your relay, bring your OpenAI key, and build onto your iPhone with Xcode. No Telegate subscription is required. Infrastructure and API usage are yours to operate and pay for.
 
-**Developer preview:** physical-iPhone acceptance is still pending. See [verification](docs/VERIFICATION.md).
+**Developer preview:** the development build is installed on the test iPhone; live voice and physical-device acceptance are still pending. See [tomorrow’s test checklist](docs/TOMORROW-READINESS.md) and [verification](docs/VERIFICATION.md).
 
 **[Visit the Telegate landing page →](https://telegate.danielfoch.chatgpt.site)**
 
@@ -83,6 +83,10 @@ npm start
 
 It binds to loopback by default and stores data under `data/telegate.sqlite`. No OpenAI key belongs in the relay’s environment.
 
+### Test from your phone without hosting yet
+
+`scripts/local-relay.sh install` runs the relay on this Mac behind a temporary Cloudflare quick tunnel and keeps both alive with launchd, so a phone on any network can reach it over HTTPS. `status` prints the current address and health; `url` prints only the address; `restart` gets a fresh one. Quick tunnels change hostname whenever they restart, so use the address it prints on both devices and update it in the phone’s **Settings → Change service address…** and in Connect’s Settings if it changes. Requires `cloudflared` (`brew install cloudflared`) and `secrets/relay-preview.env`. For everyday use, host the relay permanently ([SELF-HOST.md](docs/SELF-HOST.md)).
+
 ### First real-device trial
 
 1. Deploy the relay over HTTPS (see [Release guide](docs/RELEASE.md)). Install a signed iPhone build and Telegate Connect on the computer.
@@ -101,6 +105,7 @@ It binds to loopback by default and stores data under `data/telegate.sqlite`. No
 
 ```sh
 npm run connect
+npm run connect -- check
 npm run connect -- run
 ```
 
