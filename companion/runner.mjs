@@ -1,13 +1,22 @@
 import { spawn } from 'node:child_process';
-import { access, stat } from 'node:fs/promises';
+import { access, stat, mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { agentKinds, inspectAgentCLI, agentInvocation, parseAgentResult } from './agent-cli.mjs';
 import { constants } from 'node:fs';
 import { delimiter, join } from 'node:path';
 
-export function invocation(task, adapter) {
+function taskInput(task) {
   if (typeof task.prompt !== 'string' || !task.title || !task.id) throw new Error('Invalid task brief.');
-  const input=`Task ID: ${task.id}\n\n${task.title}\n\n${task.prompt}\n\nUse your existing harness instructions and permissions. Report the outcome, artifacts, and any required user action. Do not claim an action succeeded without checking it.`;
+  return `Task ID: ${task.id}\n\n${task.title}\n\n${task.prompt}\n\nUse your existing harness instructions and permissions. Report the outcome, artifacts, and any required user action. Do not claim an action succeeded without checking it.`;
+}
+export function invocation(task, adapter, options={}) {
+  const input=taskInput(task);
   const resume=task.resumeRunId;
   if(resume && !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,199}$/.test(resume))throw new Error('The saved harness session ID is invalid. Open the harness to continue.');
+  if(agentKinds.includes(adapter.kind)) {
+    if(!adapter.command||!adapter.cwd)throw new Error('Choose an executable and working folder on this computer.');
+    return agentInvocation(task,adapter,input,options);
+  }
   const args=adapter.kind==='codex'?(resume?['exec','--approve-for-me','resume','--json',resume,'-']:['exec','--json','--approve-for-me','-']):
     adapter.kind==='claude'?['--print','--output-format','stream-json','--verbose',...(resume?['--resume',resume]:[])]:adapter.args;
   if (!['codex','claude','command'].includes(adapter.kind)||!Array.isArray(args)||!args.every(a=>typeof a==='string')) throw new Error('Invalid local harness configuration.');
@@ -16,7 +25,7 @@ export function invocation(task, adapter) {
 }
 export async function available(harnesses) {
   return Promise.all(harnesses.map(async h=>{
-    let enabled=h.enabled!==false;
+    let enabled=h.enabled!==false,problem;
     if (h.kind==='webhook') { try {enabled &&= new URL(h.url).protocol==='https:';}catch{enabled=false;} }
     else {
       try { if (!(await stat(h.cwd)).isDirectory()) enabled=false; } catch {enabled=false;}
@@ -24,8 +33,10 @@ export async function available(harnesses) {
       let executable=false;
       for (const p of paths) {try{await access(p,constants.X_OK);executable=true;break;}catch{}}
       enabled &&= executable;
+      if(enabled && agentKinds.includes(h.kind)){const checked=await inspectAgentCLI(h);enabled=checked.ready;problem=checked.problem;}
+      else if(!enabled && h.enabled!==false && agentKinds.includes(h.kind))problem=`${h.name}: executable or working folder not found.`;
     }
-    return {id:h.id,name:h.name,kind:h.kind,enabled};
+    return {id:h.id,name:h.name,kind:h.kind,enabled,...(problem?{problem}:{})};
   }));
 }
 export function parseResult(output,kind) {
@@ -50,8 +61,19 @@ export async function runTask(task,adapter,{signal,timeoutMs,onChild=()=>{}}={})
     const r=await response.json();
     return {status:['completed','failed'].includes(r.status)?r.status:'submitted',result:String(r.result||r.message||'Accepted by the cloud harness. Continue in its app.'),runId:r.id,threadURL:r.thread_url||r.threadURL};
   }
-  const call=invocation(task,adapter);
-  return new Promise(resolve=>{
+  let capabilities,temporary,messageFile;
+  if(agentKinds.includes(adapter.kind)) {
+    capabilities=await inspectAgentCLI(adapter);
+    if(!capabilities.ready)throw new Error(capabilities.problem);
+    if(signal?.aborted)return {status:'needs_attention',result:'Connector stopped before execution. No harness process was started.'};
+  }
+  try {
+    if(adapter.kind==='openclaw'){
+      temporary=await mkdtemp(join(tmpdir(),'telegate-openclaw-'));messageFile=join(temporary,'brief.txt');
+      await writeFile(messageFile,taskInput(task),{mode:0o600});
+    }
+    const call=invocation(task,adapter,{capabilities,messageFile,timeoutMs});
+    return await new Promise(resolve=>{
     let stdout='',stderr='',interrupted=false,settled=false,killTimer;
     const child=spawn(call.command,call.args,{cwd:adapter.cwd,shell:false,stdio:['pipe','pipe','pipe'],env:process.env,detached:process.platform!=='win32'});
     const kill=sig=>{try{if(process.platform!=='win32'&&child.pid)process.kill(-child.pid,sig);else child.kill(sig);}catch{}};
@@ -64,9 +86,10 @@ export async function runTask(task,adapter,{signal,timeoutMs,onChild=()=>{}}={})
     child.stderr.on('data',d=>{stderr=(stderr+d).slice(-12000);});child.stdin.on('error',()=>{});
     child.once('error',e=>finish({status:'failed',result:e.message}));
     child.once('close',code=>{
-      const parsed=parseResult(stdout,adapter.kind);
-      finish({status:interrupted||parsed.attention?'needs_attention':code!==0||parsed.failed?'failed':parsed.result?'completed':'needs_attention',result:((interrupted?'Execution stopped. Inspect the harness before retrying.\n':'')+(parsed.result||stderr||'Harness exited without a result.')).slice(-48000),runId:parsed.runId});
+      const parsed=agentKinds.includes(adapter.kind)?parseAgentResult(stdout,stderr,adapter.kind):parseResult(stdout,adapter.kind);
+      finish({status:interrupted||parsed.attention?'needs_attention':code!==0||parsed.failed?'failed':parsed.result?'completed':'needs_attention',result:((interrupted?'Execution stopped. Inspect the harness before retrying.\n':'')+(parsed.result||stderr||'Harness exited without a result.')).slice(-48000),runId:call.runId||parsed.runId});
     });
     child.stdin.end(call.input);
-  });
+    });
+  } finally { if(temporary)await rm(temporary,{recursive:true,force:true}); }
 }

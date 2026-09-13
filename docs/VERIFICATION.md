@@ -55,3 +55,11 @@ Use [RELEASE.md](RELEASE.md) for physical-device and cross-network checks. A pub
 - Telegate Connect builds successfully with the new Grok Bot preset; Docker image builds with the adapter included.
 - An isolated relay and temporary HTTPS tunnel submitted one harmless task through the real companion cloud runner to a dedicated Clydesdale webhook routine. Grok received the task and prepared its completion callback. Its automatic approval review held the outbound callback for user approval because of the temporary tunnel hostname. Receipt is verified; a live completed result, real phone voice and APNs delivery are not claimed.
 - Permanent hosting, a stable callback hostname, companion configuration and provider approval remain deployment prerequisites. No OpenAI key or business task was used for this integration test.
+
+## OpenClaw and Hermes adapters (2026-09-12)
+
+- All 46 Node tests passed locally. The 44-test relay/companion/setup subset passed in Node 24 Alpine; Git project scans remain covered on the Mac.
+- Real subprocess fixtures exercise OpenClaw private-file input, isolated sessions, exact follow-ups, Hermes stdin and older literal-argument input, session footers on both streams, incompatible CLIs, incomplete/error output, cancellation, and task-file cleanup. Both new kinds were paired and executed through the actual relay/connector loop.
+- Telegate Connect builds successfully with both preset buttons, picker entries, OpenClaw agent selection and the bundled adapter module.
+- The locally installed older Hermes CLI passed capability detection. A harmless live check found an existing provider URL made entirely of terminal arrow-key escape sequences. The malformed overrides were backed up and removed, preserving the existing provider/model/credentials; a second check timed out after 90 seconds with no final answer and correctly returned needs_attention. A successful real Hermes model run is not claimed.
+- OpenClaw is not installed on the development Mac; its command contract was checked against official docs/source and subprocess fixtures. A real gateway/model acceptance run remains required. Telegate does not silently install or upgrade either harness.

@@ -31,6 +31,7 @@ struct LocalHarness: Codable, Identifiable {
   var token = ""
   var shareProjectContext = false
   var timeoutMinutes = 240
+  var agentId: String?
   var summary: Harness { Harness(id: id, name: name, kind: kind, enabled: enabled) }
 }
 struct ComputerConfiguration: Codable {
@@ -292,12 +293,14 @@ struct ConnectView: View {
               Picker("Type", selection: $h.kind) {
                 Text("Codex").tag("codex")
                 Text("Claude Code").tag("claude")
+                Text("OpenClaw").tag("openclaw")
+                Text("Hermes Agent").tag("hermes")
                 Text("Other command").tag("command")
                 Text("Cloud endpoint").tag("webhook")
               }.onChange(of: h.kind) { _, v in
-                if v == "codex" || v == "claude" {
+                if ["codex", "claude", "openclaw", "hermes"].contains(v) {
                   h.command = ExecutableLocator.find(v)
-                  h.name = v == "codex" ? "Codex" : "Claude Code"
+                  h.name = ["codex": "Codex", "claude": "Claude Code", "openclaw": "OpenClaw", "hermes": "Hermes Agent"][v] ?? v
                 }
               }
               if h.kind == "webhook" {
@@ -307,6 +310,13 @@ struct ConnectView: View {
                   "Cloud endpoints must accept the Telegate task contract. For Grok Bot, use your relay’s Grok Bot adapter and its submission token. The Grok webhook key stays on the relay."
                 ).font(.caption).foregroundStyle(.secondary)
               } else {
+                if h.kind == "openclaw" {
+                  TextField("OpenClaw agent ID", text: Binding(get: { h.agentId ?? "main" }, set: { h.agentId = $0 }))
+                  Text("Uses your existing OpenClaw gateway and the selected agent’s workspace. The folder below is the CLI launch folder and optional project context.").font(.caption).foregroundStyle(.secondary)
+                }
+                if h.kind == "hermes" {
+                  Text("Uses your installed Hermes and its existing model, tools and permissions. Current versions read briefs from stdin; older versions use a literal process argument.").font(.caption).foregroundStyle(.secondary)
+                }
                 TextField("Executable", text: $h.command)
                 HStack {
                   TextField("Working folder", text: $h.cwd)
@@ -338,6 +348,17 @@ struct ConnectView: View {
               }
             }.padding(.vertical, 8).disabled(model.connected || model.pair != nil)
           }
+          HStack {
+            ForEach(["openclaw", "hermes"], id: \.self) { kind in
+              Button(kind == "openclaw" ? "Add OpenClaw" : "Add Hermes Agent") {
+                var harness = LocalHarness()
+                harness.kind = kind
+                harness.name = kind == "openclaw" ? "OpenClaw" : "Hermes Agent"
+                harness.command = ExecutableLocator.find(kind)
+                model.harnesses.append(harness)
+              }
+            }
+          }.disabled(model.connected || model.pair != nil)
           Button("Add Grok Bot / Clydesdale") {
             var harness = LocalHarness()
             harness.name = "Grok Bot / Clydesdale"

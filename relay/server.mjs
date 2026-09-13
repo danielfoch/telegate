@@ -37,7 +37,7 @@ const harnesses = input => {
     if (!/^[a-zA-Z0-9_-]+$/.test(id) || seen.has(id)) fail(400, 'Harness IDs must be unique.');
     seen.add(id);
     const kind = string(h.kind, 1, 30, 'harness type');
-    if (!['codex', 'claude', 'command', 'webhook'].includes(kind)) fail(400, 'Unknown harness type.');
+    if (!['codex', 'claude', 'openclaw', 'hermes', 'command', 'webhook'].includes(kind)) fail(400, 'Unknown harness type.');
     return { id, name: string(h.name, 1, 100, 'harness name'), kind, enabled: h.enabled === true };
   });
 };

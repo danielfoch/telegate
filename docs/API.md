@@ -63,6 +63,10 @@ The companion reads only work folders whose local harness config has `shareProje
 
 Snapshots are included in the next voice session’s reference context. During a call, changed context for the selected computer is supplied via `session.thinking.append`; application instructions remain separate from untrusted project metadata. The full bounded snapshot also goes to the brief planner.
 
+## OpenClaw and Hermes local harnesses
+
+The relay accepts `openclaw` and `hermes` harness kinds in pairing and device updates. Their executable, workspace, and optional OpenClaw `agentId` are configured on the computer; phone/task payloads cannot override them. Results use `/v1/device/result`, with `runId` holding the resumable OpenClaw session key or Hermes session ID. See [setup and compatibility](integrations/OPENCLAW-HERMES.md).
+
 ## Cloud harness adapters
 
 A locally configured HTTPS endpoint receives:

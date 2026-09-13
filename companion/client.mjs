@@ -36,6 +36,7 @@ export async function runConnector(configPath,{signal,log=console.log,pollMs=300
   const statePath=configPath+'.state.json';let workController,revoked=false;
   const scan=createScanner(configPath,log);
   const scans=new Set();
+  const problems=new Map();
   const scheduleScan=(...args)=>{const work=scan(...args).catch(e=>log('Project scan: '+e.message));scans.add(work);void work.finally(()=>scans.delete(work));};
   try {
     let state=await readJSON(statePath,{active:null,outbox:null});
@@ -45,6 +46,7 @@ export async function runConnector(configPath,{signal,log=console.log,pollMs=300
       const secret=process.env.TELEGATE_DEVICE_TOKEN||config.deviceToken;
       try {
         const hs=await available(config.harnesses||[]);
+        for(const h of hs){if(h.problem&&problems.get(h.id)!==h.problem)log(h.problem);problems.set(h.id,h.problem);}
         if(state.outbox){await request(config.service,secret,'/v1/device/result',state.outbox);state={active:null,outbox:null};await atomicJSON(statePath,state);log('Result delivered.');}
         const {task,scan:scanPolicy}=await request(config.service,secret,'/v1/device/poll',{harnesses:hs});
         // Scanning is read-only and bounded. Do not delay claiming/executing a queued task for it.
