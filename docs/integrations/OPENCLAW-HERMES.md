@@ -1,12 +1,12 @@
 # Connect OpenClaw or Hermes Agent
 
-Telegate Connect now has **Add OpenClaw** and **Add Hermes Agent** buttons, plus matching harness types in the normal picker. Both use your installed CLI, existing credentials, models, tools and permissions. No additional Telegate-specific model key or public webhook is needed on the computer. The phone still uses its own OpenAI voice key.
+Telegate Connect has **OpenClaw** and **Hermes Agent** cards under **Add an agent**. Both use your installed CLI, existing credentials, models, tools and permissions. No additional Telegate-specific model key or public webhook is needed on the computer. The phone still uses its own OpenAI voice key.
 
 ## Setup
 
 1. Update/restart your Telegate relay and rebuild Telegate Connect from this revision. The relay must recognize the new `openclaw` and `hermes` harness types; your existing accounts and paired computers are preserved.
 2. Install and configure the harness on the computer that will do the work. First verify it works in its own interface. Use the [official OpenClaw guide](https://docs.openclaw.ai/start/getting-started) or [Hermes quickstart](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart).
-3. In Telegate Connect, stop its connector if running, choose **Add OpenClaw** or **Add Hermes Agent**, and confirm the executable and folder. For OpenClaw, choose your existing **agent ID** (default `main`). For Hermes, the chosen working directory is used to launch the agent.
+3. In Telegate Connect, pause its connection if running, choose **OpenClaw** or **Hermes Agent** under **Add an agent**, and confirm the folder. Executable settings are under **Advanced settings**. For OpenClaw, choose your existing **agent ID** (default `main`). For Hermes, the chosen working directory is used to launch the agent.
 4. Save and reconnect. Choose that computer and harness in Telegate on your phone. Send a harmless brief such as: “Reply with Telegate connected. Do not use tools or change anything.” Review the result before delegating larger work.
 
 CLI users can run `npm run connect` and select `openclaw` or `hermes` in the setup questions. No argument-array editing is needed. On a VPS, run the Node companion there alongside the harness; pair that server as a separate computer. The Mac app is optional for this arrangement. The execution computer/server must stay awake and connected.

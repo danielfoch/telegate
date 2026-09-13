@@ -63,3 +63,9 @@ Use [RELEASE.md](RELEASE.md) for physical-device and cross-network checks. A pub
 - Telegate Connect builds successfully with both preset buttons, picker entries, OpenClaw agent selection and the bundled adapter module.
 - The locally installed older Hermes CLI passed capability detection. A harmless live check found an existing provider URL made entirely of terminal arrow-key escape sequences. The malformed overrides were backed up and removed, preserving the existing provider/model/credentials; a second check timed out after 90 seconds with no final answer and correctly returned needs_attention. A successful real Hermes model run is not claimed.
 - OpenClaw is not installed on the development Mac; its command contract was checked against official docs/source and subprocess fixtures. A real gateway/model acceptance run remains required. Telegate does not silently install or upgrade either harness.
+
+## Connect interface and pairing recovery (2026-09-12)
+
+- Mac build passed; all 46 Node tests passed. The native window was visually checked with agent icons, pairing controls and the settings/editor sheets. Agent save, cancelled addition, invalid service validation and configuration rollback were exercised in the running app.
+- A legacy configuration without timeout/agent-ID fields was decoded and round-tripped through the current Swift model, preserving three agent IDs, project sharing and the service URL. The rebuilt app displayed all three entries and saved them successfully.
+- The failed pairing setup pointed at a loopback port with no relay listening. Starting a relay and exposing a temporary HTTPS tunnel restored `/health` and native pairing-code creation. This is a development recovery, not evidence of permanent hosting or a completed physical-phone pairing.

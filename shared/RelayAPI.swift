@@ -63,7 +63,22 @@ struct RelayAPI {
     guard let base = AppConfiguration.validService(service),
       let url = URL(string: path, relativeTo: base)
     else { throw UserFacingError(message: "Set the Telegate service address before connecting.") }
-    let data = try await HTTP.json(url, token: token, body: body)
+    let data: Data
+    do {
+      data = try await HTTP.json(url, token: token, body: body)
+    } catch let error as URLError {
+      let host = base.host ?? "your Telegate service"
+      switch error.code {
+      case .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed, .timedOut:
+        let hint = ["127.0.0.1", "localhost", "::1"].contains(host)
+          ? "This is a local address. Start your relay and use its public HTTPS address on both your Mac and phone."
+          : "Check that your relay is running and both devices use the same service address in Settings."
+        throw UserFacingError(message: "Couldn’t reach \(host). \(hint)")
+      case .notConnectedToInternet:
+        throw UserFacingError(message: "You’re offline. Reconnect to the internet, then try again.")
+      default: throw error
+      }
+    }
     return try JSONDecoder().decode(T.self, from: data)
   }
 }

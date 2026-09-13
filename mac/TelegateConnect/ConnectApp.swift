@@ -33,6 +33,27 @@ struct LocalHarness: Codable, Identifiable {
   var timeoutMinutes = 240
   var agentId: String?
   var summary: Harness { Harness(id: id, name: name, kind: kind, enabled: enabled) }
+  init() {}
+  private enum CodingKeys: String, CodingKey {
+    case id, name, kind, enabled, command, cwd, args, url, token, shareProjectContext,
+      timeoutMinutes, agentId
+  }
+  init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    id = try values.decode(String.self, forKey: .id)
+    name = try values.decode(String.self, forKey: .name)
+    kind = try values.decode(String.self, forKey: .kind)
+    enabled = try values.decode(Bool.self, forKey: .enabled)
+    command = try values.decode(String.self, forKey: .command)
+    cwd = try values.decode(String.self, forKey: .cwd)
+    args = try values.decode([String].self, forKey: .args)
+    url = try values.decode(String.self, forKey: .url)
+    token = try values.decode(String.self, forKey: .token)
+    shareProjectContext = try values.decode(Bool.self, forKey: .shareProjectContext)
+    // Early Connect builds did not write these fields. Preserve their saved agents.
+    timeoutMinutes = try values.decodeIfPresent(Int.self, forKey: .timeoutMinutes) ?? 240
+    agentId = try values.decodeIfPresent(String.self, forKey: .agentId)
+  }
 }
 struct ComputerConfiguration: Codable {
   var service: String
@@ -73,8 +94,8 @@ struct ComputerConfiguration: Codable {
         FileManager.default.isExecutableFile(atPath: $0)
       } ?? "")
   }
-  func save() throws {
-    guard AppConfiguration.validService(service) != nil else {
+  func save(requireService: Bool = true) throws {
+    guard (!requireService && service.isEmpty) || AppConfiguration.validService(service) != nil else {
       throw UserFacingError(message: "Enter your Telegate HTTPS service address.")
     }
     for h in harnesses {
@@ -237,10 +258,12 @@ struct ComputerConfiguration: Codable {
   @StateObject private var model = ConnectModel()
   var body: some Scene {
     WindowGroup {
-      ConnectView().environmentObject(model).frame(minWidth: 650, minHeight: 650).onAppear {
+      ConnectView().environmentObject(model).frame(minWidth: 720, minHeight: 680).onAppear {
         if model.deviceId != nil { model.start() }
       }
     }
+    .defaultSize(width: 780, height: 860)
+    .windowStyle(.hiddenTitleBar)
     MenuBarExtra("Telegate Connect", systemImage: "phone.arrow.up.right") {
       Text(model.connected ? "Connector running" : "Connector stopped")
       Button(model.connected ? "Stop connector" : "Start connector") {
@@ -254,164 +277,424 @@ struct ComputerConfiguration: Codable {
     }
   }
 }
+private enum ConnectStyle {
+  static let ink = Color(red: 0.12, green: 0.18, blue: 0.15)
+  static let accent = Color(red: 0.22, green: 0.36, blue: 0.26)
+  static let canvas = Color(nsColor: .windowBackgroundColor)
+  static let card = Color(nsColor: .controlBackgroundColor)
+}
+
+private enum AgentBrand: String, CaseIterable, Identifiable {
+  case codex, claude, openclaw, hermes, grok, custom
+  var id: String { rawValue }
+  var name: String {
+    switch self {
+    case .codex: "Codex"
+    case .claude: "Claude Code"
+    case .openclaw: "OpenClaw"
+    case .hermes: "Hermes Agent"
+    case .grok: "Grok Bot"
+    case .custom: "Other agent"
+    }
+  }
+  var detail: String {
+    switch self {
+    case .codex: "Code & build"
+    case .claude: "Code & research"
+    case .openclaw: "Personal assistant"
+    case .hermes: "Tasks & research"
+    case .grok: "Cloud assistant"
+    case .custom: "Connect your tools"
+    }
+  }
+  var tint: Color {
+    switch self {
+    case .claude: Color(red: 0.83, green: 0.47, blue: 0.34)
+    case .openclaw: .red
+    case .hermes: Color(red: 0.52, green: 0.38, blue: 0.74)
+    default: ConnectStyle.accent
+    }
+  }
+  static func forHarness(_ h: LocalHarness) -> AgentBrand {
+    if h.kind == "webhook" { return h.name.lowercased().contains("grok") ? .grok : .custom }
+    return AgentBrand(rawValue: h.kind) ?? .custom
+  }
+  func harness(service: String) -> LocalHarness {
+    var h = LocalHarness()
+    h.name = name
+    h.kind = self == .grok || self == .custom ? "webhook" : rawValue
+    h.command = h.kind == "webhook" ? "" : ExecutableLocator.find(rawValue)
+    if self == .grok, let base = AppConfiguration.validService(service) {
+      h.url = URL(string: "/v1/adapters/grokbot/tasks", relativeTo: base)?.absoluteString ?? ""
+    }
+    return h
+  }
+}
+
+private struct AgentIcon: View {
+  var brand: AgentBrand
+  var size: CGFloat = 44
+  var body: some View {
+    ZStack {
+      RoundedRectangle(cornerRadius: size * 0.27).fill(.white)
+      RoundedRectangle(cornerRadius: size * 0.27).fill(brand.tint.opacity(0.09))
+      if brand == .hermes {
+        // Hermes' official favicon uses the caduceus character.
+        Text("☤").font(.system(size: size * 0.7)).foregroundStyle(brand.tint)
+      } else if brand == .custom {
+        Image(systemName: "square.stack.3d.up").font(.system(size: size * 0.47)).foregroundStyle(brand.tint)
+      } else {
+        Image("Harness-\(brand.rawValue)").resizable().scaledToFit()
+          .frame(width: size * 0.60, height: size * 0.60)
+      }
+    }.frame(width: size, height: size).accessibilityHidden(true)
+  }
+}
+
 struct ConnectView: View {
   @EnvironmentObject var model: ConnectModel
+  @State private var editing: LocalHarness?
+  @State private var showSettings = false
+  @State private var showActivity = false
+  private var locked: Bool { model.connected || model.pair != nil || model.busy }
   var body: some View {
-    VStack(alignment: .leading, spacing: 18) {
+    VStack(spacing: 0) {
+      header
+      ScrollView {
+        VStack(alignment: .leading, spacing: 26) {
+          connectionCard
+          if let error = model.error {
+            Label(error, systemImage: "exclamationmark.circle.fill")
+              .font(.callout).foregroundStyle(.red).textSelection(.enabled)
+              .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+              .background(.red.opacity(0.06), in: RoundedRectangle(cornerRadius: 14))
+          }
+          selectedAgents
+          agentCatalog
+          HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "lock.shield").font(.title3)
+            Text("Your voice and OpenAI key stay on your phone. This Mac receives the work you choose to send.")
+              .font(.callout).fixedSize(horizontal: false, vertical: true)
+          }.foregroundStyle(.secondary).padding(.horizontal, 4)
+        }.padding(28)
+      }
+      footer
+    }
+    .background(ConnectStyle.canvas).tint(ConnectStyle.accent)
+    .sheet(item: $editing) { harness in
+      AgentEditor(model: model, original: harness)
+    }
+    .sheet(isPresented: $showSettings) { ConnectSettings(model: model) }
+    .sheet(isPresented: $showActivity) {
+      VStack(alignment: .leading, spacing: 16) {
+        HStack {
+          Text("Connection activity").font(.title2.bold())
+          Spacer()
+          Button("Done") { showActivity = false }
+        }
+        ScrollView {
+          Text(model.log.isEmpty ? "No activity yet. Pair your phone to get started." : model.log)
+            .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+      }.padding(24).frame(width: 600, height: 400)
+    }
+  }
+  private var header: some View {
+    HStack(spacing: 12) {
+      Image(systemName: "phone.arrow.up.right.fill")
+        .font(.system(size: 23, weight: .semibold)).foregroundStyle(ConnectStyle.accent)
+        .frame(width: 46, height: 46)
+        .background(ConnectStyle.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 14))
+      VStack(alignment: .leading, spacing: 2) {
+        Text("telegate").font(.system(size: 24, weight: .bold, design: .rounded))
+        Text("CONNECT").font(.system(size: 10, weight: .semibold)).tracking(2.5).foregroundStyle(.secondary)
+      }
+      Spacer()
+      Button { showSettings = true } label: {
+        Label("Settings", systemImage: "slider.horizontal.3")
+      }.buttonStyle(.bordered).controlSize(.large)
+    }.padding(.horizontal, 28).padding(.top, 26).padding(.bottom, 20)
+  }
+  private var connectionCard: some View {
+    VStack(alignment: .leading, spacing: 22) {
+      HStack(alignment: .top, spacing: 18) {
+        Image(systemName: "desktopcomputer").font(.system(size: 38, weight: .light))
+          .foregroundStyle(ConnectStyle.accent).frame(width: 70, height: 70)
+          .background(ConnectStyle.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 20))
+        VStack(alignment: .leading, spacing: 7) {
+          Text(model.deviceId == nil ? "Your desk. On call." : "Take your ideas with you.")
+            .font(.system(size: 27, weight: .semibold, design: .rounded))
+          Text(model.name).font(.callout).foregroundStyle(.secondary)
+          Label(model.connected ? "Connector running" : model.deviceId != nil ? "Paired · paused" : "Not paired yet",
+                systemImage: model.connected ? "circle.fill" : "circle")
+            .font(.caption.weight(.medium)).foregroundStyle(model.connected ? ConnectStyle.accent : .secondary)
+        }
+        Spacer(minLength: 0)
+      }
+      if let pair = model.pair {
+        VStack(alignment: .leading, spacing: 12) {
+          Text("Open Telegate on your phone → Computers → Add computer.")
+            .font(.callout)
+          HStack {
+            Text(String(pair.code.prefix(5)) + "-" + String(pair.code.suffix(5)))
+              .font(.system(size: 32, weight: .semibold, design: .monospaced)).textSelection(.enabled)
+            Spacer()
+            Button("Copy code", systemImage: "doc.on.doc") {
+              NSPasteboard.general.clearContents()
+              NSPasteboard.general.setString(pair.code, forType: .string)
+            }
+          }
+          Text("Use the same service address on both devices. This code expires in 10 minutes.")
+            .font(.caption).foregroundStyle(.secondary)
+          HStack {
+            Button("Copy service address") {
+              NSPasteboard.general.clearContents()
+              NSPasteboard.general.setString(model.service, forType: .string)
+            }
+            Button("Cancel pairing") { model.resetPairing() }
+          }
+        }.padding(18).background(ConnectStyle.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: 16))
+      } else {
+        HStack(spacing: 18) {
+          Text(model.deviceId == nil
+               ? "Pair your phone. Pick your agents.\nSend work from wherever inspiration finds you."
+               : "Keep this app open and your Mac awake.\nCheck your phone to see when this computer is online.")
+            .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+          Spacer(minLength: 0)
+          Button {
+            if model.deviceId != nil {
+              if model.connected { model.stop() } else { model.start() }
+            } else if AppConfiguration.validService(model.service) == nil {
+              showSettings = true
+            } else { Task { await model.beginPairing() } }
+          } label: {
+            HStack(spacing: 8) {
+              if model.busy { ProgressView().controlSize(.small) }
+              Text(model.deviceId == nil ? "Pair my phone" : model.connected ? "Pause connection" : "Start connection")
+              if model.deviceId == nil { Image(systemName: "arrow.right") }
+            }.padding(.horizontal, 8).padding(.vertical, 7)
+          }.buttonStyle(.borderedProminent).controlSize(.large)
+            .disabled(model.busy || model.harnesses.isEmpty)
+        }
+      }
+    }.padding(24).background(ConnectStyle.card, in: RoundedRectangle(cornerRadius: 24))
+      .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(.primary.opacity(0.05)))
+  }
+  private var selectedAgents: some View {
+    VStack(alignment: .leading, spacing: 12) {
       HStack {
-        Image(systemName: "phone.arrow.up.right.fill").font(.largeTitle).foregroundStyle(.green)
-        VStack(alignment: .leading) {
-          Text("telegate connect").font(.system(size: 28, weight: .bold, design: .rounded))
-          Text("Leave your desk behind. Keep this computer ready for your next idea.").foregroundStyle(.secondary)
+        Text("Your agents").font(.title3.weight(.semibold))
+        Text("\(model.harnesses.filter(\.enabled).count) selected").font(.caption).foregroundStyle(.secondary)
+        Spacer()
+        if locked { Text(model.pair != nil ? "Cancel pairing to edit" : "Pause to edit").font(.caption).foregroundStyle(.secondary) }
+      }
+      if model.harnesses.isEmpty {
+        Text("Choose an agent below to receive your first idea.").foregroundStyle(.secondary)
+          .padding(20).frame(maxWidth: .infinity, alignment: .leading)
+          .background(ConnectStyle.card, in: RoundedRectangle(cornerRadius: 16))
+      }
+      ForEach(model.harnesses) { h in
+        HStack(spacing: 14) {
+          AgentIcon(brand: .forHarness(h))
+          VStack(alignment: .leading, spacing: 4) {
+            Text(h.name).font(.body.weight(.semibold))
+            Text(h.kind == "webhook" ? "Cloud connection" : "On this Mac")
+              .font(.caption).foregroundStyle(.secondary)
+          }
+          Spacer()
+          Button("Configure") { editing = h }.buttonStyle(.borderless).disabled(locked)
+          Toggle("Use \(h.name)", isOn: Binding(get: { h.enabled }, set: { enabled in
+            guard let index = model.harnesses.firstIndex(where: { $0.id == h.id }) else { return }
+            model.harnesses[index].enabled = enabled
+            do { try model.save(requireService: false); model.error = nil }
+            catch { model.harnesses[index].enabled = h.enabled; model.error = error.localizedDescription }
+          })).labelsHidden().toggleStyle(.switch).controlSize(.small).disabled(locked)
+        }.padding(16).background(ConnectStyle.card, in: RoundedRectangle(cornerRadius: 16))
+      }
+    }
+  }
+  private var agentCatalog: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Add an agent").font(.title3.weight(.semibold))
+      LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
+        ForEach(AgentBrand.allCases) { brand in
+          Button { editing = brand.harness(service: model.service) } label: {
+            HStack(spacing: 12) {
+              AgentIcon(brand: brand, size: 38)
+              VStack(alignment: .leading, spacing: 4) {
+                Text(brand.name).font(.callout.weight(.semibold)).foregroundStyle(.primary)
+                Text(brand.detail).font(.system(size: 11)).foregroundStyle(.secondary)
+              }
+              Spacer(minLength: 0)
+            }.padding(14).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+              .background(ConnectStyle.card, in: RoundedRectangle(cornerRadius: 16))
+          }.buttonStyle(.plain).disabled(locked).accessibilityLabel("Add \(brand.name)")
+        }
+      }
+    }
+  }
+  private var footer: some View {
+    HStack {
+      Toggle("Open at login", isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) }))
+        .toggleStyle(.switch).controlSize(.small)
+      Spacer()
+      Button("Activity", systemImage: "waveform.path") { showActivity = true }.buttonStyle(.borderless)
+      Link("Help", destination: URL(string: "https://github.com/danielfoch/telegate#readme")!).font(.callout)
+    }.padding(.horizontal, 28).padding(.vertical, 16)
+      .background(ConnectStyle.card)
+  }
+}
+
+private struct AgentEditor: View {
+  @ObservedObject var model: ConnectModel
+  @Environment(\.dismiss) private var dismiss
+  @State private var draft: LocalHarness
+  @State private var error: String?
+  @State private var advanced = false
+  private let isNew: Bool
+  init(model: ConnectModel, original: LocalHarness) {
+    self.model = model
+    _draft = State(initialValue: original)
+    isNew = !model.harnesses.contains { $0.id == original.id }
+  }
+  var body: some View {
+    VStack(alignment: .leading, spacing: 20) {
+      HStack(spacing: 14) {
+        AgentIcon(brand: .forHarness(draft), size: 52)
+        VStack(alignment: .leading, spacing: 4) {
+          Text(isNew ? "Add \(draft.name)" : draft.name).font(.title2.bold())
+          Text("Choose how this agent receives your work.").foregroundStyle(.secondary)
         }
         Spacer()
-        Circle().fill(model.connected ? .green : .gray).frame(width: 10, height: 10)
       }
       Form {
-        Section("This computer") {
-          TextField("Service address", text: $model.service).disabled(
-            model.deviceId != nil || model.pair != nil)
-          TextField("Computer name", text: $model.name).disabled(
-            model.connected || model.pair != nil)
-          TextField("Node executable", text: $model.node).disabled(model.connected)
-          Link(
-            "Install Node.js 24 or newer",
-            destination: URL(string: "https://nodejs.org/en/download")!)
-        }
-        Section("Your harnesses") {
-          ForEach($model.harnesses) { $h in
-            VStack(alignment: .leading, spacing: 10) {
-              HStack {
-                TextField("Name", text: $h.name)
-                Toggle("Enabled", isOn: $h.enabled)
-                Button(role: .destructive) {
-                  model.harnesses.removeAll { $0.id == h.id }
-                } label: {
-                  Image(systemName: "trash")
-                }.disabled(model.connected)
-              }
-              Picker("Type", selection: $h.kind) {
-                Text("Codex").tag("codex")
-                Text("Claude Code").tag("claude")
-                Text("OpenClaw").tag("openclaw")
-                Text("Hermes Agent").tag("hermes")
-                Text("Other command").tag("command")
-                Text("Cloud endpoint").tag("webhook")
-              }.onChange(of: h.kind) { _, v in
-                if ["codex", "claude", "openclaw", "hermes"].contains(v) {
-                  h.command = ExecutableLocator.find(v)
-                  h.name = ["codex": "Codex", "claude": "Claude Code", "openclaw": "OpenClaw", "hermes": "Hermes Agent"][v] ?? v
-                }
-              }
-              if h.kind == "webhook" {
-                TextField("HTTPS task-submission URL", text: $h.url)
-                SecureField("Endpoint bearer token", text: $h.token)
-                Text(
-                  "Cloud endpoints must accept the Telegate task contract. For Grok Bot, use your relay’s Grok Bot adapter and its submission token. The Grok webhook key stays on the relay."
-                ).font(.caption).foregroundStyle(.secondary)
-              } else {
-                if h.kind == "openclaw" {
-                  TextField("OpenClaw agent ID", text: Binding(get: { h.agentId ?? "main" }, set: { h.agentId = $0 }))
-                  Text("Uses your existing OpenClaw gateway and the selected agent’s workspace. The folder below is the CLI launch folder and optional project context.").font(.caption).foregroundStyle(.secondary)
-                }
-                if h.kind == "hermes" {
-                  Text("Uses your installed Hermes and its existing model, tools and permissions. Current versions read briefs from stdin; older versions use a literal process argument.").font(.caption).foregroundStyle(.secondary)
-                }
-                TextField("Executable", text: $h.command)
-                HStack {
-                  TextField("Working folder", text: $h.cwd)
-                  Button("Choose…") {
-                    let p = NSOpenPanel()
-                    p.canChooseDirectories = true
-                    p.canChooseFiles = false
-                    if p.runModal() == .OK { h.cwd = p.url?.path ?? h.cwd }
-                  }
-                }
-                if h.kind == "command" {
-                  TextField(
-                    "Arguments (one per line)",
-                    text: Binding(
-                      get: { h.args.joined(separator: "\n") },
-                      set: { h.args = $0.split(separator: "\n").map(String.init) }), axis: .vertical
-                  )
-                  Text(
-                    "The task brief arrives on standard input. Commands run with your local harness permissions."
-                  ).font(.caption).foregroundStyle(.secondary)
-                }
-                Toggle("Share project context with my voice app", isOn: $h.shareProjectContext)
-                Stepper(
-                  "Run limit: \(h.timeoutMinutes) minutes", value: $h.timeoutMinutes, in: 15...1440,
-                  step: 15)
-                Text(
-                  "Shares this folder’s name, Git branch, change count, and latest commit subject. No source files, diffs, credentials, or parent folders are uploaded. Set scan frequency from your phone."
-                ).font(.caption).foregroundStyle(.secondary)
-              }
-            }.padding(.vertical, 8).disabled(model.connected || model.pair != nil)
+        TextField("Name", text: $draft.name)
+        if AgentBrand.forHarness(draft) == .custom {
+          Picker("Connection", selection: $draft.kind) {
+            Text("Cloud service").tag("webhook")
+            Text("Local command").tag("command")
           }
+        }
+        if draft.kind == "webhook" {
+          TextField("Connection URL", text: $draft.url)
+          SecureField("Connection key", text: $draft.token)
+          Text(draft.name.lowercased().contains("grok")
+               ? "Use the Grok Bot adapter address and connection key from your relay administrator."
+               : "Your service needs to accept Telegate tasks and send results back.")
+            .font(.caption).foregroundStyle(.secondary)
+          Link("Connection guide", destination: URL(string: "https://github.com/danielfoch/telegate/blob/main/docs/integrations/\(draft.name.lowercased().contains("grok") ? "GROKBOT.md" : "../API.md")")!)
+        } else {
           HStack {
-            ForEach(["openclaw", "hermes"], id: \.self) { kind in
-              Button(kind == "openclaw" ? "Add OpenClaw" : "Add Hermes Agent") {
-                var harness = LocalHarness()
-                harness.kind = kind
-                harness.name = kind == "openclaw" ? "OpenClaw" : "Hermes Agent"
-                harness.command = ExecutableLocator.find(kind)
-                model.harnesses.append(harness)
-              }
+            VStack(alignment: .leading, spacing: 4) {
+              Text("Project folder").font(.callout.weight(.medium))
+              Text(draft.cwd).font(.caption).foregroundStyle(.secondary).lineLimit(2).textSelection(.enabled)
             }
-          }.disabled(model.connected || model.pair != nil)
-          Button("Add Grok Bot / Clydesdale") {
-            var harness = LocalHarness()
-            harness.name = "Grok Bot / Clydesdale"
-            harness.kind = "webhook"
-            harness.command = ""
-            if let service = URL(string: model.service), service.scheme == "https" {
-              harness.url = URL(string: "/v1/adapters/grokbot/tasks", relativeTo: service)?.absoluteURL.absoluteString ?? ""
+            Spacer()
+            Button("Choose folder…") {
+              let panel = NSOpenPanel()
+              panel.canChooseDirectories = true
+              panel.canChooseFiles = false
+              panel.directoryURL = URL(fileURLWithPath: draft.cwd)
+              if panel.runModal() == .OK { draft.cwd = panel.url?.path ?? draft.cwd }
             }
-            model.harnesses.append(harness)
-          }.disabled(model.connected || model.pair != nil)
-          Link("Set up the Grok Bot relay adapter", destination: URL(string: "https://github.com/danielfoch/telegate/blob/main/docs/integrations/GROKBOT.md")!)
-          Button("Add harness") { model.harnesses.append(LocalHarness()) }.disabled(
-            model.connected || model.pair != nil)
-        }
-        Section("Connect your phone") {
-          if let pair = model.pair {
-            Text("In Telegate → Computers → Add computer, enter:")
-            Text(String(pair.code.prefix(5)) + "-" + String(pair.code.suffix(5))).font(
-              .system(size: 34, weight: .bold, design: .monospaced)
-            ).textSelection(.enabled)
-            Text("Confirm that the phone shows “\(model.name)”. Expires in 10 minutes.").font(
-              .caption)
-          } else if model.deviceId != nil {
-            HStack {
-              Button(model.connected ? "Stop connector" : "Start connector") {
-                if model.connected { model.stop() } else { model.start() }
-              }.buttonStyle(.borderedProminent)
-              Button("Pair again") { model.resetPairing() }.disabled(model.connected)
-            }
-            Text(
-              model.connected
-                ? "This process is running. Check your phone for the computer’s online heartbeat."
-                : "Paired. Start the connector to receive work."
-            ).foregroundStyle(.secondary)
-          } else {
-            Button("Get pairing code") { Task { await model.beginPairing() } }.buttonStyle(
-              .borderedProminent
-            ).disabled(model.busy || model.harnesses.isEmpty)
           }
-          Toggle(
-            "Open Telegate Connect at login",
-            isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) }))
+          Toggle("Let voice know what I’m working on", isOn: $draft.shareProjectContext)
+          Text("Shares the folder name, branch, change count and latest commit subject. Your source files stay here.")
+            .font(.caption).foregroundStyle(.secondary)
+          if draft.kind == "openclaw" {
+            Text("Work runs in your OpenClaw agent’s own workspace. This folder is used for project awareness.")
+              .font(.caption).foregroundStyle(.secondary)
+          }
+          DisclosureGroup("Advanced settings", isExpanded: $advanced) {
+            TextField("Executable", text: $draft.command)
+            if draft.kind == "openclaw" {
+              TextField("Agent ID", text: Binding(get: { draft.agentId ?? "main" }, set: { draft.agentId = $0 }))
+            }
+            if draft.kind == "command" {
+              TextField("Arguments (one per line)", text: Binding(
+                get: { draft.args.joined(separator: "\n") },
+                set: { draft.args = $0.split(separator: "\n").map(String.init) }), axis: .vertical)
+              Text("Telegate sends the brief on standard input.").font(.caption).foregroundStyle(.secondary)
+            }
+            Stepper("Time limit: \(draft.timeoutMinutes) minutes", value: $draft.timeoutMinutes, in: 15...1440, step: 15)
+          }
+          Text("Uses your agent’s existing account, model and permissions. Install and sign in to the agent first.")
+            .font(.caption).foregroundStyle(.secondary)
         }
-        if let error = model.error { Text(error).foregroundStyle(.red) }
-        if !model.log.isEmpty {
-          Section("Activity") {
-            Text(model.log).font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+      }.formStyle(.grouped)
+      if let error { Text(error).foregroundStyle(.red).font(.callout) }
+      HStack {
+        if !isNew {
+          Button("Remove agent", role: .destructive) { commit(remove: true) }.buttonStyle(.borderless)
+        }
+        Spacer()
+        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+        Button(isNew ? "Add agent" : "Save changes") { commit() }
+          .buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction)
+      }
+    }.padding(24).frame(width: 560, height: 550).tint(ConnectStyle.accent)
+  }
+  private func commit(remove: Bool = false) {
+    let previous = model.harnesses
+    model.harnesses.removeAll { $0.id == draft.id }
+    if !remove {
+      if let index = previous.firstIndex(where: { $0.id == draft.id }) { model.harnesses.insert(draft, at: index) }
+      else { model.harnesses.append(draft) }
+    }
+    do { try model.save(requireService: false); model.error = nil; dismiss() }
+    catch { model.harnesses = previous; self.error = error.localizedDescription }
+  }
+}
+
+private struct ConnectSettings: View {
+  @ObservedObject var model: ConnectModel
+  @Environment(\.dismiss) private var dismiss
+  @State private var service = ""
+  @State private var name = ""
+  @State private var node = ""
+  @State private var error: String?
+  var body: some View {
+    VStack(alignment: .leading, spacing: 18) {
+      Text("Connection settings").font(.title2.bold())
+      Text("Give this computer a name you’ll recognize on your phone.").foregroundStyle(.secondary)
+      Form {
+        TextField("Computer name", text: $name).disabled(model.connected || model.pair != nil)
+        Section("Telegate service") {
+          TextField("HTTPS address", text: $service).disabled(model.deviceId != nil || model.pair != nil)
+          Text("Use the same address in the phone app. Your self-hosted service connects the two devices.")
+            .font(.caption).foregroundStyle(.secondary)
+          if model.service.contains("trycloudflare.com") {
+            Text("This is a temporary test address. Keep the relay and tunnel running; a permanent host is needed for everyday use.")
+              .font(.caption).foregroundStyle(.orange)
+          }
+        }
+        DisclosureGroup("Advanced") {
+          TextField("Node executable", text: $node).disabled(model.connected)
+          Link("Install Node.js 24 or newer", destination: URL(string: "https://nodejs.org/en/download")!)
+          if model.deviceId != nil {
+            Button("Unpair this Mac") { model.resetPairing() }.disabled(model.connected)
+            Text("Pause the connection first. Pair again to change services.").font(.caption).foregroundStyle(.secondary)
           }
         }
       }.formStyle(.grouped)
-      Text(
-        "Keep this app running and the computer awake to receive work. Audio and your OpenAI key stay on your phone; this computer receives task briefs."
-      ).font(.caption).foregroundStyle(.secondary)
-    }.padding(24)
+      if let error { Text(error).foregroundStyle(.red).font(.callout) }
+      HStack {
+        Spacer()
+        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+        Button("Save") {
+          let previous = (model.service, model.name, model.node)
+          model.service = service.trimmingCharacters(in: .whitespacesAndNewlines)
+          model.name = name
+          model.node = node
+          do { try model.save(); model.error = nil; dismiss() }
+          catch {
+            (model.service, model.name, model.node) = previous
+            self.error = error.localizedDescription
+          }
+        }.buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction)
+      }
+    }.padding(24).frame(width: 540, height: 450).tint(ConnectStyle.accent)
+      .onAppear { service = model.service; name = model.name; node = model.node }
   }
 }

@@ -38,7 +38,7 @@ This is a separate product from Homies Voice. It does not change the existing Ho
 - Native WebRTC microphone and speaker connection to GPT-Live, transcript events, client delegation, and GPT-5.6 Terra task brief preparation.
 - A large Start/End call control, microphone-permission recovery, interruption handling, and graceful session close.
 - A `Start voice chat` App Shortcut for Siri, Shortcuts, and an iPhone Action Button. The user assigns it in Settings; the app cannot change the hardware-button setting itself.
-- Native **Telegate Connect** for Mac: name the computer, configure harnesses and work folders, show a pairing code, run/stop the connector, and optionally launch at login.
+- Native **Telegate Connect** for Mac: a visual agent picker with recognizable icons, a simple phone-pairing card, and optional advanced settings. [Mac setup guide](docs/CONNECT.md).
 - Portable Node companion for macOS, Linux, and Windows-compatible command harnesses. It requires Node 24+ and installed, authenticated harness executables.
 - Multiple users and computers; a one-time pairing code; independent, revocable device tokens; exact-device task routing; local execution without shell interpolation.
 - Codex, Claude Code, [OpenClaw and Hermes Agent](docs/integrations/OPENCLAW-HERMES.md), locally configured command adapters, and HTTPS task-submission adapters. An optional [Grok Bot / Clydesdale adapter](docs/integrations/GROKBOT.md) submits saved tasks to a dedicated Grok webhook routine and accepts completion callbacks. Configure the routine and relay before using it; other cloud adapters still require a compatible provider endpoint.
@@ -80,7 +80,7 @@ It binds to loopback by default and stores data under `data/telegate.sqlite`. No
 1. Deploy the relay over HTTPS (see [Release guide](docs/RELEASE.md)). Install a signed iPhone build and Telegate Connect on the computer.
 2. On the phone, create an account and save its recovery key. Enter your own OpenAI key. Your OpenAI project must support `gpt-live-1` and `gpt-5.6-terra`.
 3. On the computer, use the same relay address. Add Codex/Claude/custom harnesses; choose their existing executables and working folders. Authenticate each harness in its normal app/CLI first.
-4. Enable **Share project context** only for the folders you want shared. Get a pairing code.
+4. Enable **Let voice know what I’m working on** only for the folders you want shared. Click **Pair my phone**.
 5. On the phone: **Computers → +**, enter the code, verify the computer’s name and harnesses, and connect it. Leave Telegate Connect running and the computer awake.
 6. Choose the destination on the Call tab. Tap **Start talking** and grant microphone access. Ask for a small, observable task in a test project. Check the task in both Telegate and the actual harness.
 7. In **Computers → Project awareness**, choose the scan frequency or request a scan. Confirm its timestamp, then ask about that project during a call.
