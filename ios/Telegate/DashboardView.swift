@@ -95,7 +95,7 @@ struct DashboardContent<Preferences: View>: View {
           "\(Double(totals.estimatedMinutesSaved)/60, specifier: "%.1f") estimated hours saved")
         Text("hours for the rest of your life").font(.title3)
         Text(
-          "\(totals.tasksCompleted) completed tasks × your \(snapshot.preferences.minutesPerCompletedTask)-minute estimate. This is an estimate of hands-on work avoided, not measured time away."
+          "\(totals.tasksCompleted) completed task\(totals.tasksCompleted == 1 ? "" : "s") × your \(snapshot.preferences.minutesPerCompletedTask)-minute estimate. This is an estimate of hands-on work avoided, not measured time away."
         )
         .font(.footnote).foregroundStyle(Palette.ink.opacity(0.8))
         NavigationLink("How this is estimated", destination: preferences)
@@ -211,7 +211,8 @@ struct DashboardPreferencesView: View {
       if let error { Text(error).foregroundStyle(.red) }
       Button("Save preferences") { Task { await save() } }.disabled(
         busy || (enabled && name.trimmingCharacters(in: .whitespaces).count < 2))
-    }.navigationTitle("Your dashboard settings").navigationBarTitleDisplayMode(.inline)
+    }.paperBackground().navigationTitle("Your dashboard settings").navigationBarTitleDisplayMode(
+      .inline)
   }
   private func save() async {
     busy = true
@@ -277,7 +278,7 @@ struct LeaderboardView: View {
           Button("Try again") { Task { await refresh() } }
         }
       }
-    }.navigationTitle("Away from the desk").navigationBarTitleDisplayMode(.inline)
+    }.paperBackground().navigationTitle("Away from the desk").navigationBarTitleDisplayMode(.inline)
       .task { await refresh() }.refreshable { await refresh() }
   }
   private func row(_ entry: LeaderboardEntry) -> some View {

@@ -171,7 +171,7 @@ struct ComputerConfiguration: Codable {
       let health: Health = try await RelayAPI(service: service).request("/health")
       guard health.status == "ok" else { throw UserFacingError(message: "The service did not report healthy.") }
       let count = checkedHarnesses.filter(\.enabled).count
-      checkMessage = "Service reachable · \(count) agent\(count == 1 ? "" : "s") available. Send a small test task from your phone to verify agent sign-in and permissions."
+      checkMessage = "Service reachable · \(count) agent\(count == 1 ? "" : "s") available. Send a small test task from your phone to verify agent sign-in, then test a file edit to confirm permissions."
       error = nil
     } catch { self.error = error.localizedDescription }
   }

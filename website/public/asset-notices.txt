@@ -60,3 +60,5 @@ Third-party notices for incorporated or adapted code are recorded in
 THIRD_PARTY_NOTICES.md.
 
 Landing-page additions: OpenAI and GitHub marks from LobeHub (same MIT license above). HomiesAI app icon from https://homiesai.com/icon.png, used to identify the integration. Manrope fonts are licensed under the SIL Open Font License; https://github.com/sharanda/manrope. Hero and phone concept artwork generated for Telegate with OpenAI image generation. Phone rendering is illustrative, not a production-app screenshot.
+
+The landing-page Hermes caduceus is an outlined glyph from Noto Sans Symbols (Google Noto project), licensed under the SIL Open Font License 1.1. Source: https://github.com/google/fonts/tree/main/ofl/notosanssymbols. Full license: /logos/NotoSansSymbols-OFL.txt. Outlines avoid relying on a visitor’s installed symbol fonts.

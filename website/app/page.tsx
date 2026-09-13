@@ -133,9 +133,6 @@ function Logo({ id, size = 28 }: { id: string; size?: number }) {
       className={`agent-logo logo-${id}`}
       style={{ '--logo-size': `${size}px` } as CSSProperties}
     >
-      {id === 'hermes' ? (
-        <span className="hermes-symbol">☤</span>
-      ) : (
         <Image
           unoptimized
           src={`/logos/${id}.${id === 'homies' ? 'png' : 'svg'}`}
@@ -143,7 +140,6 @@ function Logo({ id, size = 28 }: { id: string; size?: number }) {
           height={size}
           alt=""
         />
-      )}
     </span>
   );
 }
@@ -548,7 +544,7 @@ export default function Home() {
                 ],
                 [
                   'Make it make sense.',
-                  'Workshop it with ChatGPT voice. Add context, ask questions, and shape what you actually want done.',
+                  'Talk it through with Telegate voice. Add context, ask questions, and shape what you actually want done.',
                 ],
                 [
                   'Give it somewhere to go.',

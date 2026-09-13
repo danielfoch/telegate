@@ -14,7 +14,7 @@ struct SetupReadinessView: View {
       }.buttonStyle(.plain).frame(maxWidth: .infinity)
     } else {
     VStack(alignment: .leading, spacing: 14) {
-      Text(onlineAgent && model.hasKey && model.connectionError == nil ? "Your next idea is ready to go." : "Let’s get you ready.")
+      Text("Let’s get you ready.")
         .font(.headline)
       if let error = model.connectionError {
         Label(error, systemImage: "wifi.exclamationmark").font(.callout).foregroundStyle(.red)
@@ -28,7 +28,7 @@ struct SetupReadinessView: View {
         model.composingTask = true
       }
         .font(.callout.weight(.semibold)).disabled(model.targets.isEmpty)
-      Text("A completed test confirms this agent’s sign-in and permissions. Voice needs a separate first-call check.")
+      Text("A completed reply confirms routing and agent sign-in. Test a small file edit before relying on unattended work.")
         .font(.caption).foregroundStyle(.secondary)
     }.padding(20).frame(maxWidth: 632, alignment: .leading)
       .background(.white, in: RoundedRectangle(cornerRadius: 22)).frame(maxWidth: .infinity)
@@ -88,7 +88,7 @@ struct NewTaskView: View {
             .font(.footnote).foregroundStyle(.secondary)
         }
         if let error { Text(error).foregroundStyle(.red) }
-      }.disabled(busy)
+      }.paperBackground().disabled(busy)
         .navigationTitle("New task").navigationBarTitleDisplayMode(.inline)
         .toolbar {
           ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(busy) }
