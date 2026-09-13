@@ -97,3 +97,10 @@ Use [RELEASE.md](RELEASE.md) for physical-device and cross-network checks. A pub
 - Physical iPhone: the signed DIY build with the current relay address was installed over USB (launch requires the phone to be unlocked). Voice, Action Button, and a real Codex/Claude run from the phone remain to be checked by hand.
 
 The subsequent combined build keeps actual Keychain storage in the simulator and uses ad-hoc signing; the plaintext simulator fallback above was superseded after all eight Keychain/delivery/protocol tests passed without it. The updated combined test counts and acceptance record take precedence over earlier baseline counts.
+
+## One-hour integration follow-up (September 12, 2026, after 23:23 Eastern)
+
+- Preserved Claude’s `d497e63` commit, merged both histories as `171cbae`, fast-forwarded the clean primary checkout, and restarted its launchd relay with the combined server fixes. Local and public health checks pass.
+- Through the real public HTTPS relay: disposable account creation and pairing, Codex and Claude task delivery, file creation in non-Git folders, exact-session follow-up edits, completed results and account cleanup all pass. Artifacts were read and verified. The disposable account, tasks, device and folders were removed.
+- Linux Chromium visually inspected the landing page and tested widths 320/390/768/1440/1920, every example selector and routing card, real clipboard copy, pause/play and image decoding. No overflow, broken images or script errors remain. Replaced a redirect-text Homies image with the actual PNG and replaced the platform-dependent Hermes text glyph with a licensed local vector outline. This supersedes the earlier browser-daemon failure; the published website has not been redeployed.
+- Repeated the eight native tests after merging the UI polish; they pass. Updated native bundles build and the final iPhone bundle’s HTTPS service address is verified. The Mac and phone are still locked, so live native interaction, audio and BYOK acceptance remain blocked pending the user.

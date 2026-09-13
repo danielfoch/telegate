@@ -20,11 +20,11 @@ Readiness audit started September 12, 2026. This document records evidence, not 
 - 52 Node tests pass on both macOS and Linux / Node 24 Alpine for the combined changes.
 - Eight native iOS tests pass with simulator signing, including actual Keychain save/read/update, concurrent delivery retries, preservation after delivery errors and account-change safety.
 - Signed simulator sign-in and a complete UI text-task → relay → companion → completed-result round trip pass against an isolated in-memory relay and harmless fixture agent.
-- Mac app builds and its installed bundle passes code-signature validation. Bundled CLI diagnostics recognize all three existing Codex/Claude entries; an isolated missing-agent fixture gives an actionable reason.
-- Real Codex and Claude initial requests and exact-session resumption pass.
+- Mac app builds and its installed bundle passes code-signature validation. Bundled CLI diagnostics recognize the existing Codex/Claude entries; an isolated missing-agent fixture gives an actionable reason.
+- Real Codex and Claude initial requests and exact-session resumption pass. A further test through the restarted public HTTPS relay passed account creation, pairing, delivery, file creation and exact-session follow-up editing for both agents in non-Git folders. All disposable artifacts, account records, devices and tasks were removed afterward.
 - Real Codex file creation and follow-up edit pass; both artifacts were inspected in a disposable Git project.
 - Original Claude noninteractive file creation was blocked by permissions. The concurrent agent's automatic-review implementation passed real file creation and exact-session follow-up editing.
-- The final development-signed iPhone build was installed successfully under the existing app ID and Apple team. First launch was blocked explicitly by the device lock; microphone/voice acceptance remains pending.
+- The development-signed iPhone build was installed successfully under the existing app ID and Apple team. The final bundle contains the current HTTPS relay address, verified in its Info.plist. First launch was blocked explicitly by the device lock; microphone/voice acceptance remains pending.
 - The existing launchd-managed relay and its current HTTPS tunnel both return healthy responses. A disposable test of the updated helper verifies that unhealthy service addresses are not published and shutdown clears a stale address.
 - Landing-page static build, lint and TypeScript checks pass. Updated affected dependencies; `npm audit` reports zero known vulnerabilities for that lockfile.
 
@@ -38,7 +38,7 @@ Readiness audit started September 12, 2026. This document records evidence, not 
 - Grok Bot needs its configured submission endpoint, bearer key, routine and completion callback. The earlier temporary callback test was held by provider approval. Confirm the routine uses the current relay address and produces a completed task.
 - HomiesAI requires a Telegate-compatible task endpoint. It is not a finished native connector merely because it appears in the marketing examples.
 - Windows companion execution and full iPad/Dynamic Type/VoiceOver acceptance remain unverified.
-- Landing-page browser acceptance remains pending: the headless browser daemon did not complete navigation. Static build/lint/types passed, but those checks do not establish visual correctness.
+- Landing-page visual and interaction checks pass in isolated Linux Chromium at 320, 390, 768, 1440 and 1920px widths. No horizontal overflow, broken images or page-script errors remain. All seven example selectors, six routing cards, clipboard copy and pause/play controls pass. The separately published website has not been redeployed.
 
 ## Fixes in this audit
 
@@ -66,8 +66,8 @@ Source changes are prepared locally. Updating the marketing website's source cop
 
 ## Concurrent checkout handoff
 
-The tested source is `/Users/danielfoch/Documents/ChatGPT/Telegate/app` on `codex/tomorrow-readiness`. Claude’s active source remains `/Users/danielfoch/.local/share/telegate`. The installed native apps use the combined readiness source. The running launchd relay still uses the primary checkout; its readiness server fixes must be reconciled and restarted after checking Claude’s current work. Do not replace the primary checkout wholesale or discard its uncommitted changes.
+The tested source is `/Users/danielfoch/Documents/ChatGPT/Telegate/app` on `codex/tomorrow-readiness`. Claude’s commit `d497e63` was merged with the readiness work in `171cbae`; the primary checkout at `/Users/danielfoch/.local/share/telegate` was then fast-forwarded, preserving both histories. The launchd relay was restarted with the combined source and passed the real public-route test. The existing Mac configuration and private build configuration now use the refreshed relay address, preserving the configured agents and pairing fields.
 
-The primary checkout subsequently introduced a simulator-only plaintext credential fallback. It is intentionally excluded here: ad-hoc simulator signing resolved error -34018 and all eight native tests passed against the actual Keychain. Keep the signed simulator workflow so development exercises the same credential storage behavior as the device.
+The combined source supersedes the temporary simulator-only plaintext credential fallback: ad-hoc simulator signing resolved error -34018, and all eight native tests passed against the actual Keychain. Keep the signed simulator workflow so development exercises the same credential storage behavior as the device.
 
-A one-hour follow-up is scheduled to compare new changes, reconcile safely and refresh the builds. The existing installation is usable for tomorrow’s manual first-call check, but this record does not claim a successful voice call or perfect UI acceptance.
+The one-hour follow-up was completed after 23:23 Eastern on September 12. The primary checkout is clean and contains the combined fixes. The installation is prepared for tomorrow’s manual first-call check, but this record does not claim a successful voice call or perfect native UI acceptance.
