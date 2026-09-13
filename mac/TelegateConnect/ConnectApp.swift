@@ -280,7 +280,11 @@ struct ComputerConfiguration: Codable {
 private enum ConnectStyle {
   static let ink = Color(red: 0.12, green: 0.18, blue: 0.15)
   static let accent = Color(red: 0.22, green: 0.36, blue: 0.26)
-  static let canvas = Color(nsColor: .windowBackgroundColor)
+  static let canvas = Color(nsColor: NSColor(name: nil) { appearance in
+    appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+      ? NSColor(calibratedWhite: 0.10, alpha: 1)
+      : NSColor(calibratedRed: 0.965, green: 0.969, blue: 0.955, alpha: 1)
+  })
   static let card = Color(nsColor: .controlBackgroundColor)
 }
 
@@ -376,7 +380,8 @@ struct ConnectView: View {
             Text("Your voice and OpenAI key stay on your phone. This Mac receives the work you choose to send.")
               .font(.callout).fixedSize(horizontal: false, vertical: true)
           }.foregroundStyle(.secondary).padding(.horizontal, 4)
-        }.padding(28)
+        }.padding(28).frame(maxWidth: 920)
+          .frame(maxWidth: .infinity)
       }
       footer
     }
