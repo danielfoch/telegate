@@ -7,6 +7,7 @@ struct DashboardView: View {
   var body: some View {
     NavigationStack {
       ScrollView {
+        SetupReadinessView().padding(.horizontal, 24).padding(.top, 16)
         if let snapshot {
           DashboardContent(
             snapshot: snapshot, accountName: model.login?.username ?? "",
@@ -144,7 +145,7 @@ struct DashboardContent<Preferences: View>: View {
         "Updated \(Date(timeIntervalSince1970: snapshot.asOf/1000), style: .relative) ago. Pull to refresh."
       )
       .font(.caption).foregroundStyle(.secondary)
-    }.foregroundStyle(Palette.ink).padding(24)
+    }.foregroundStyle(Palette.ink).padding(24).frame(maxWidth: 680).frame(maxWidth: .infinity)
   }
   private var shipped: some View {
     metric(

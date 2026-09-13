@@ -1,9 +1,35 @@
-import { spawn } from 'node:child_process';
+import { spawn, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { access, stat, mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { agentKinds, inspectAgentCLI, agentInvocation, parseAgentResult } from './agent-cli.mjs';
 import { constants } from 'node:fs';
 import { delimiter, join } from 'node:path';
+const exec = promisify(execFile);
+const cliChecks = new Map();
+function harnessEnvironment() {
+  const env = {...process.env};
+  // Relay credentials belong to the connector, not the agent executing a brief.
+  delete env.TELEGATE_DEVICE_TOKEN;
+  delete env.TELEGATE_CONFIG;
+  return env;
+}
+async function inspectLocalCLI(h) {
+  const key = JSON.stringify([h.kind, h.command, h.cwd]);
+  if (!cliChecks.has(key)) cliChecks.set(key, (async () => {
+    try {
+      const {stdout, stderr} = await exec(h.command, h.kind === 'codex' ? ['exec', '--help'] : ['--help'], {cwd:h.cwd, timeout:10000, maxBuffer:256000});
+      const help = stdout + stderr;
+      const flags = h.kind === 'codex' ? ['--json', '--approve-for-me'] : ['--print', '--output-format', '--resume'];
+      if (!flags.every(flag => help.includes(flag))) return 'Update this agent: its CLI is missing required delegation options.';
+      if (h.kind === 'codex') {
+        try { await exec('git', ['rev-parse', '--show-toplevel'], {cwd:h.cwd, timeout:5000}); }
+        catch { return 'Choose a Git project folder for Codex in Configure.'; }
+      }
+    } catch { return 'Cannot start this agent. Check its executable and installation.'; }
+  })());
+  return cliChecks.get(key);
+}
 
 function taskInput(task) {
   if (typeof task.prompt !== 'string' || !task.title || !task.id) throw new Error('Invalid task brief.');
@@ -26,7 +52,11 @@ export function invocation(task, adapter, options={}) {
 export async function available(harnesses) {
   return Promise.all(harnesses.map(async h=>{
     let enabled=h.enabled!==false,problem;
-    if (h.kind==='webhook') { try {enabled &&= new URL(h.url).protocol==='https:';}catch{enabled=false;} }
+    if (h.kind==='webhook') {
+      try {const u=new URL(h.url); enabled &&= u.protocol==='https:' && !u.username && !u.password && !u.hash;}
+      catch {enabled=false;}
+      if(!enabled && h.enabled!==false)problem='Enter a valid HTTPS task endpoint without embedded credentials.';
+    }
     else {
       try { if (!(await stat(h.cwd)).isDirectory()) enabled=false; } catch {enabled=false;}
       const paths=h.command?.includes('/')||h.command?.includes('\\')?[h.command]:(process.env.PATH||'').split(delimiter).map(p=>join(p,h.command||''));
@@ -34,7 +64,8 @@ export async function available(harnesses) {
       for (const p of paths) {try{await access(p,constants.X_OK);executable=true;break;}catch{}}
       enabled &&= executable;
       if(enabled && agentKinds.includes(h.kind)){const checked=await inspectAgentCLI(h);enabled=checked.ready;problem=checked.problem;}
-      else if(!enabled && h.enabled!==false && agentKinds.includes(h.kind))problem=`${h.name}: executable or working folder not found.`;
+      else if(enabled && ['codex','claude'].includes(h.kind)){problem=await inspectLocalCLI(h);enabled=!problem;}
+      if(!enabled && h.enabled!==false && !problem)problem='Executable or working folder not found. Check Configure on this computer.';
     }
     return {id:h.id,name:h.name,kind:h.kind,enabled,...(problem?{problem}:{})};
   }));
@@ -75,7 +106,7 @@ export async function runTask(task,adapter,{signal,timeoutMs,onChild=()=>{}}={})
     const call=invocation(task,adapter,{capabilities,messageFile,timeoutMs});
     return await new Promise(resolve=>{
     let stdout='',stderr='',interrupted=false,settled=false,killTimer;
-    const child=spawn(call.command,call.args,{cwd:adapter.cwd,shell:false,stdio:['pipe','pipe','pipe'],env:process.env,detached:process.platform!=='win32'});
+    const child=spawn(call.command,call.args,{cwd:adapter.cwd,shell:false,stdio:['pipe','pipe','pipe'],env:harnessEnvironment(),detached:process.platform!=='win32'});
     const kill=sig=>{try{if(process.platform!=='win32'&&child.pid)process.kill(-child.pid,sig);else child.kill(sig);}catch{}};
     const stop=()=>{interrupted=true;kill('SIGTERM');killTimer=setTimeout(()=>kill('SIGKILL'),3000);killTimer.unref();};
     const timer=setTimeout(stop,timeoutMs);

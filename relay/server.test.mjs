@@ -177,3 +177,15 @@ test('dashboard lifetime totals include tasks outside the latest-100 task feed',
   assert.equal((await f.call('/v1/state',u.token)).tasks.length,100);
   const stats=await f.call('/v1/dashboard',u.token);assert.equal(stats.allTime.promptsShipped,111);assert.equal(stats.allTime.tasksCompleted,110);assert.equal(stats.allTime.estimatedMinutesSaved,3300);
 });
+
+test('owner sees bounded agent diagnostics and unavailable agents cannot receive new work',async t=>{
+  const f=await fixture(t),u=await f.register('diagnostics'),d=await f.pair(u.token);
+  const problem='Choose a Git project folder for Codex in Configure.';
+  await f.call('/v1/device/poll',d.secret,{harnesses:[{...harnesses[0],enabled:false,problem}]});
+  const state=await f.call('/v1/state',u.token);
+  assert.equal(state.devices[0].harnesses[0].problem,problem);
+  assert.equal(state.devices[0].harnesses[0].enabled,false);
+  assert.equal((await f.task(u.token,d)).status,400);
+  await f.call('/v1/device/poll',d.secret,{harnesses:[{...harnesses[0],enabled:false,problem:'x'.repeat(900)}]});
+  assert.equal((await f.call('/v1/state',u.token)).devices[0].harnesses[0].problem.length,300);
+});

@@ -18,6 +18,7 @@
 		40D01AD04F9E98AAD720800C /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF7CAAA38B414082B86BC2A /* AppModel.swift */; };
 		4790CC7DF9FD7F5461A497DD /* SecureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B535AA4B6C6CA6D8DC7BA30 /* SecureStore.swift */; };
 		4A1DDD81B9550A3EBEEBC19E /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B202B63B3FFF39041D6CC5 /* Notifications.swift */; };
+		8CB968E563BF27D738A16340 /* DeliveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85232216BCAD1114822CDABC /* DeliveryTests.swift */; };
 		8D9E42352CFB714C70BB8EC5 /* ConnectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E67D9DB9558C3F84D7DA738 /* ConnectApp.swift */; };
 		8FA6DB320FEAB2DB44E1FF46 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BF49F29960A18A0F8A91575 /* Assets.xcassets */; };
 		A3A16E4091A8C9C6FEF026F8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2FDDEAE76D8DA26B16959348 /* Assets.xcassets */; };
@@ -26,6 +27,7 @@
 		B30721BA0E8FDFF9849938E5 /* ProtocolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D9FBDB90696F97F59BC149 /* ProtocolTests.swift */; };
 		B4AF9D1429526744FE312C37 /* companion in Resources */ = {isa = PBXBuildFile; fileRef = 038642A5328CBBDFEA7FCFF9 /* companion */; };
 		CBF8854EFB8A4DCF68FAD809 /* TelegateApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E20BB65FBF5AA941387AEC /* TelegateApp.swift */; };
+		D7C7FAF54970F51620B00CEE /* SetupReadinessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0B8A87897BC22489EA1B53 /* SetupReadinessView.swift */; };
 		EC78B1AFA7E4695A18B74C7D /* VoiceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA299AE9ADE330E8CA23F542 /* VoiceSession.swift */; };
 /* End PBXBuildFile section */
 
@@ -48,8 +50,10 @@
 		2FDDEAE76D8DA26B16959348 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3CFDC45B068C4337D8CB75A1 /* DIY.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DIY.xcconfig; sourceTree = "<group>"; };
 		42FE869ACF22E62374BF9CD0 /* TelegateTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TelegateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4F0B8A87897BC22489EA1B53 /* SetupReadinessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupReadinessView.swift; sourceTree = "<group>"; };
 		5A6A3EEDEB0888121413AD4E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7B535AA4B6C6CA6D8DC7BA30 /* SecureStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureStore.swift; sourceTree = "<group>"; };
+		85232216BCAD1114822CDABC /* DeliveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliveryTests.swift; sourceTree = "<group>"; };
 		8E13F13A4F9445E3ED26D7EF /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		ACF7CAAA38B414082B86BC2A /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		B2E20BB65FBF5AA941387AEC /* TelegateApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegateApp.swift; sourceTree = "<group>"; };
@@ -125,6 +129,7 @@
 				8E13F13A4F9445E3ED26D7EF /* DashboardView.swift */,
 				B9B202B63B3FFF39041D6CC5 /* Notifications.swift */,
 				5A6A3EEDEB0888121413AD4E /* PrivacyInfo.xcprivacy */,
+				4F0B8A87897BC22489EA1B53 /* SetupReadinessView.swift */,
 				1A25BD5FEE12A493D8CB5B89 /* Shortcuts.swift */,
 				B2E20BB65FBF5AA941387AEC /* TelegateApp.swift */,
 				EA299AE9ADE330E8CA23F542 /* VoiceSession.swift */,
@@ -136,6 +141,7 @@
 		CB523700415019CF3DF04955 /* TelegateTests */ = {
 			isa = PBXGroup;
 			children = (
+				85232216BCAD1114822CDABC /* DeliveryTests.swift */,
 				B3D9FBDB90696F97F59BC149 /* ProtocolTests.swift */,
 			);
 			name = TelegateTests;
@@ -291,6 +297,7 @@
 				4A1DDD81B9550A3EBEEBC19E /* Notifications.swift in Sources */,
 				3F5755BC2D5232A4AA91FD1D /* RelayAPI.swift in Sources */,
 				065F346AA81413C6627F207D /* SecureStore.swift in Sources */,
+				D7C7FAF54970F51620B00CEE /* SetupReadinessView.swift in Sources */,
 				AEB24F3A2671701E8BB476A8 /* Shortcuts.swift in Sources */,
 				CBF8854EFB8A4DCF68FAD809 /* TelegateApp.swift in Sources */,
 				EC78B1AFA7E4695A18B74C7D /* VoiceSession.swift in Sources */,
@@ -312,6 +319,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8CB968E563BF27D738A16340 /* DeliveryTests.swift in Sources */,
 				B30721BA0E8FDFF9849938E5 /* ProtocolTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

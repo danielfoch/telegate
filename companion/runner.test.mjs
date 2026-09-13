@@ -39,3 +39,42 @@ test('cloud brief includes scoped callbacks and explicit follow-up IDs without l
   assert.equal(sent.redirect,'error');assert.equal(sent.headers.Authorization,'Bearer submission-token');assert.equal(sent.headers['Idempotency-Key'],task.id);
   assert.deepEqual(sent.body,{id:task.id,title:task.title,prompt:task.prompt,parent_task_id:'parent',resume_run_id:'saved-run',callback_url:'https://relay.test/v1/hooks/tasks/job-1',callback_token:'scoped-callback'});
 });
+
+test('setup diagnostics explain missing executables and reject credential-bearing endpoints',async()=>{
+  const results=await available([
+    {id:'missing',name:'Missing',kind:'claude',command:'/not-installed',cwd:process.cwd()},
+    {id:'url',name:'Cloud',kind:'webhook',url:'https://user:password@example.test/tasks'},
+    {id:'off',name:'Off',kind:'command',enabled:false,command:process.execPath,cwd:process.cwd()},
+  ]);
+  assert.match(results[0].problem,/Executable or working folder/);
+  assert.equal(results[1].enabled,false);
+  assert.match(results[1].problem,/without embedded credentials/);
+  assert.equal(results[2].enabled,false);
+  assert.equal(results[2].problem,undefined);
+});
+
+test('Codex setup checks CLI compatibility and project folder without starting a task',async t=>{
+  const {mkdtemp,writeFile,rm}=await import('node:fs/promises');
+  const {tmpdir}=await import('node:os');
+  const {join}=await import('node:path');
+  const dir=await mkdtemp(join(tmpdir(),'telegate-cli-check-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const command=join(dir,'fake-codex');
+  await writeFile(command,'#!/usr/bin/env node\nif(process.argv.slice(2).join(" ")!=="exec --help") process.exit(8); console.log("--json --approve-for-me");',{mode:0o700});
+  const [h]=await available([{id:'codex',name:'Codex',kind:'codex',command,cwd:dir}]);
+  assert.equal(h.enabled,false);
+  assert.match(h.problem,/Git project folder/);
+  const old=join(dir,'old-codex');
+  await writeFile(old,'#!/usr/bin/env node\nconsole.log("--json");',{mode:0o700});
+  const [legacy]=await available([{id:'old',name:'Old',kind:'codex',command:old,cwd:dir}]);
+  assert.match(legacy.problem,/missing required delegation options/);
+});
+
+test('local tasks do not inherit connector credentials or private configuration paths',async t=>{
+  const before={token:process.env.TELEGATE_DEVICE_TOKEN,config:process.env.TELEGATE_CONFIG};
+  process.env.TELEGATE_DEVICE_TOKEN='fixture-only-token';process.env.TELEGATE_CONFIG='/private/fixture/config.json';
+  t.after(()=>{for(const [key,value] of [['TELEGATE_DEVICE_TOKEN',before.token],['TELEGATE_CONFIG',before.config]]){if(value===undefined)delete process.env[key];else process.env[key]=value;}});
+  const result=await runTask(task,{kind:'command',command:process.execPath,cwd:process.cwd(),args:['-e','console.log(JSON.stringify({token:!!process.env.TELEGATE_DEVICE_TOKEN,config:!!process.env.TELEGATE_CONFIG,path:!!process.env.PATH}))']});
+  assert.equal(result.status,'completed');
+  assert.deepEqual(JSON.parse(result.result),{token:false,config:false,path:true});
+});

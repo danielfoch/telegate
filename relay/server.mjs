@@ -38,7 +38,8 @@ const harnesses = input => {
     seen.add(id);
     const kind = string(h.kind, 1, 30, 'harness type');
     if (!['codex', 'claude', 'openclaw', 'hermes', 'command', 'webhook'].includes(kind)) fail(400, 'Unknown harness type.');
-    return { id, name: string(h.name, 1, 100, 'harness name'), kind, enabled: h.enabled === true };
+    return { id, name: string(h.name, 1, 100, 'harness name'), kind, enabled: h.enabled === true,
+      ...(typeof h.problem === 'string' && h.problem.trim() ? {problem:h.problem.trim().slice(0,300)} : {}) };
   });
 };
 
@@ -114,6 +115,7 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
   const grok = grokbot ? createGrokbot({...grokbot,db,now,publicURL,callbackToken,finishTask,callbackKey}) : null;
   let pushing=false;
   const flushPush=async()=>{
+    expire();
     if(pushing||!pushReady)return;pushing=true;
     try{
       run("UPDATE notifications SET state='pending' WHERE state='sending' AND next_at<?",now());
@@ -132,7 +134,11 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
   const pushTimer=setInterval(()=>void flushPush().catch(()=>console.error('Push queue failed')),5000);pushTimer.unref();
   const ownTask = (owner,id) => { const t=one('SELECT * FROM tasks WHERE id=? AND owner=?',id,owner); if (!t) fail(404,'Task not found.'); return t; };
   const expire = () => {
-    run("UPDATE tasks SET status='needs_attention',result='Computer stopped reporting. Inspect the harness before retrying.',updated_at=? WHERE status='running' AND lease_until<?",now(),now());
+    transaction(()=>{
+      const expired=all("SELECT id FROM tasks WHERE status='running' AND lease_until<?",now());
+      run("UPDATE tasks SET status='needs_attention',result='Computer stopped reporting. Inspect the harness before retrying.',updated_at=? WHERE status='running' AND lease_until<?",now(),now());
+      for(const task of expired)enqueue(one('SELECT * FROM tasks WHERE id=?',task.id));
+    });
     run('DELETE FROM pairings WHERE expires_at<?',now());
     run('DELETE FROM sessions WHERE expires_at<?',now());
   };

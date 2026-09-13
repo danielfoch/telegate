@@ -73,10 +73,18 @@ struct ComputerConfiguration: Codable {
   @Published var log = ""
   @Published var node = "/opt/homebrew/bin/node"
   @Published var launchAtLogin = SMAppService.mainApp.status == .enabled
+  @Published var checking = false
+  @Published var checkedHarnesses: [Harness] = []
+  @Published var checkMessage: String?
   private var process: Process?
   private var pairingWork: Task<Void, Never>?
   var configURL: URL {
-    FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+    #if DEBUG
+      if let path = ProcessInfo.processInfo.environment["TELEGATE_TEST_CONFIG"] {
+        return URL(fileURLWithPath: path)
+      }
+    #endif
+    return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
       .appendingPathComponent("Telegate/computer.json")
   }
   init() {
@@ -124,6 +132,45 @@ struct ComputerConfiguration: Codable {
     try JSONEncoder().encode(value).write(to: configURL, options: .atomic)
     try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: configURL.path)
     UserDefaults.standard.set(node, forKey: "nodeExecutable")
+    checkedHarnesses = []
+    checkMessage = nil
+  }
+  func checkSetup() async {
+    guard !checking else { return }
+    checking = true
+    defer { checking = false }
+    do {
+      try save()
+      guard FileManager.default.isExecutableFile(atPath: node),
+        let script = Bundle.main.url(forResource: "cli", withExtension: "mjs", subdirectory: "companion")
+      else { throw UserFacingError(message: "Choose Node.js 24 or newer in Settings → Advanced.") }
+      let p = Process()
+      p.executableURL = URL(fileURLWithPath: node)
+      p.arguments = [script.path, "check"]
+      var env = ProcessInfo.processInfo.environment
+      env["PATH"] = "/opt/homebrew/bin:/usr/local/bin:\(FileManager.default.homeDirectoryForCurrentUser.path)/.local/bin:" + (env["PATH"] ?? "/usr/bin:/bin")
+      env["TELEGATE_CONFIG"] = configURL.path
+      p.environment = env
+      let output = Pipe()
+      p.standardOutput = output
+      p.standardError = FileHandle.nullDevice
+      let data: Data = try await withCheckedThrowingContinuation { continuation in
+        p.terminationHandler = { process in
+          let data = output.fileHandleForReading.readDataToEndOfFile()
+          if process.terminationStatus == 0 { continuation.resume(returning: data) }
+          else { continuation.resume(throwing: UserFacingError(message: "Agent check failed. Verify Node.js 24+ and your agent installations.")) }
+        }
+        do { try p.run() } catch { continuation.resume(throwing: error) }
+      }
+      struct Report: Decodable { var harnesses: [Harness] }
+      checkedHarnesses = try JSONDecoder().decode(Report.self, from: data).harnesses
+      struct Health: Decodable { var status: String }
+      let health: Health = try await RelayAPI(service: service).request("/health")
+      guard health.status == "ok" else { throw UserFacingError(message: "The service did not report healthy.") }
+      let count = checkedHarnesses.filter(\.enabled).count
+      checkMessage = "Service reachable · \(count) agent\(count == 1 ? "" : "s") available. Send a small test task from your phone to verify agent sign-in and permissions."
+      error = nil
+    } catch { self.error = error.localizedDescription }
   }
   func beginPairing() async {
     guard !busy else { return }
@@ -377,7 +424,7 @@ struct ConnectView: View {
           agentCatalog
           HStack(alignment: .top, spacing: 10) {
             Image(systemName: "lock.shield").font(.title3)
-            Text("Your voice and OpenAI key stay on your phone. This Mac receives the work you choose to send.")
+            Text("Your OpenAI key stays in your phone’s Keychain. Voice goes directly to OpenAI. This Mac receives the work you choose to send.")
               .font(.callout).fixedSize(horizontal: false, vertical: true)
           }.foregroundStyle(.secondary).padding(.horizontal, 4)
         }.padding(28).frame(maxWidth: 920)
@@ -492,7 +539,14 @@ struct ConnectView: View {
         Text("Your agents").font(.title3.weight(.semibold))
         Text("\(model.harnesses.filter(\.enabled).count) selected").font(.caption).foregroundStyle(.secondary)
         Spacer()
+        Button { Task { await model.checkSetup() } } label: {
+          if model.checking { ProgressView().controlSize(.small) }
+          else { Label("Check setup", systemImage: "checkmark.shield") }
+        }.disabled(model.checking || model.busy || model.pair != nil)
         if locked { Text(model.pair != nil ? "Cancel pairing to edit" : "Pause to edit").font(.caption).foregroundStyle(.secondary) }
+      }
+      if let message = model.checkMessage {
+        Text(message).font(.callout).foregroundStyle(.secondary)
       }
       if model.harnesses.isEmpty {
         Text("Choose an agent below to receive your first idea.").foregroundStyle(.secondary)
@@ -504,8 +558,13 @@ struct ConnectView: View {
           AgentIcon(brand: .forHarness(h))
           VStack(alignment: .leading, spacing: 4) {
             Text(h.name).font(.body.weight(.semibold))
-            Text(h.kind == "webhook" ? "Cloud connection" : "On this Mac")
-              .font(.caption).foregroundStyle(.secondary)
+            Text(h.kind == "webhook" ? (URL(string: h.url)?.host ?? "Cloud connection") : h.cwd)
+              .font(.caption).foregroundStyle(.secondary).lineLimit(2).truncationMode(.middle)
+            if let checked = model.checkedHarnesses.first(where: { $0.id == h.id }) {
+              Label(checked.problem ?? (checked.enabled ? "Available · send a task to verify sign-in" : "Turned off"),
+                    systemImage: checked.enabled ? "checkmark.circle" : "exclamationmark.circle")
+                .font(.caption).foregroundStyle(checked.problem == nil ? Color.secondary : .orange)
+            }
           }
           Spacer()
           Button("Configure") { editing = h }.buttonStyle(.borderless).disabled(locked)

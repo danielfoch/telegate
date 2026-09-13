@@ -9,8 +9,8 @@ import {createRelay} from '../relay/server.mjs';
 import {request,startPairing,atomicJSON,runConnector} from './client.mjs';
 
 const task={id:'test-job',title:'Harmless fixture',prompt:'literal $(touch injected) `echo unsafe`\n--yolo; /reset'};
-async function fixture(t,kind,{legacy=false,outcome='ok'}={}) {
-  const dir=await mkdtemp(join(tmpdir(),'telegate-agent-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+async function fixture(t,kind,{legacy=false,outcome='ok',cleanup=true}={}) {
+  const dir=await mkdtemp(join(tmpdir(),'telegate-agent-'));if(cleanup)t.after(()=>rm(dir,{recursive:true,force:true}));
   const command=join(dir,kind), record=join(dir,'received.json');
   const source=`#!${process.execPath}
 import fs from 'node:fs';
@@ -69,10 +69,10 @@ test('missing or incompatible harnesses are advertised as unavailable',async t=>
   assert.ok(list.every(h=>!h.enabled));assert.match(list[0].problem,/Update OpenClaw/);
 });
 test('both new harness kinds pair, execute through Connect, report results and resume owned follow-ups',async t=>{
-  const f=await fixture(t,'hermes'),g=await fixture(t,'openclaw'),harnesses=[f.adapter,g.adapter];
+  const f=await fixture(t,'hermes',{cleanup:false}),g=await fixture(t,'openclaw',{cleanup:false}),harnesses=[f.adapter,g.adapter];
   const relay=createRelay({rateLimit:false});await new Promise(r=>relay.server.listen(0,'127.0.0.1',r));
   const service=`http://127.0.0.1:${relay.server.address().port}`,stop=new AbortController();let work;
-  t.after(async()=>{stop.abort();await work;await relay.close();});
+  t.after(async()=>{stop.abort();try{await work;}finally{await relay.close();await rm(f.dir,{recursive:true,force:true});await rm(g.dir,{recursive:true,force:true});}});
   const user=await request(service,null,'/v1/auth/register',{username:'new-harnesses',password:'long-test-password'});
   const pairing=await startPairing(service,'Mini','darwin',harnesses);const d=await request(service,user.token,'/v1/pair/approve',{code:pairing.code});
   const path=join(f.dir,'computer.json');await atomicJSON(path,{service,deviceToken:pairing.secret,harnesses});

@@ -49,7 +49,7 @@ struct RootView: View {
   @EnvironmentObject var model: AppModel
   var body: some View {
     Group {
-      if model.login == nil || !model.hasKey {
+      if model.login == nil || (!model.hasKey && !model.deferVoiceSetup) {
         OnboardingView()
       } else {
         TabView(selection: $model.tab) {
@@ -160,6 +160,13 @@ struct OnboardingView: View {
             } label: {
               buttonLabel("Connect voice")
             }.disabled(busy || key.isEmpty)
+            Button("Set up my computers first") { model.deferVoiceSetup = true }
+              .frame(maxWidth: .infinity).padding(.vertical, 8)
+            Button("Sign out") {
+              Task {
+                do { try await model.signOut() } catch { self.error = error.localizedDescription }
+              }
+            }.font(.footnote).disabled(busy)
           }
           if let error { Text(error).foregroundStyle(.red).accessibilityLabel("Error: \(error)") }
           Text("Next: pair your computers, choose your agents, and start talking.").font(.footnote)
@@ -350,10 +357,14 @@ struct ComputersView: View {
                 d.online ? .green : .secondary)
             }
             ForEach(d.harnesses) { h in
-              HStack {
-                Label(h.name, systemImage: "terminal")
-                Spacer()
-                Text(h.enabled ? "Ready" : "Unavailable").font(.caption).foregroundStyle(.secondary)
+              VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                  Label(h.name, systemImage: "terminal")
+                  Spacer()
+                  Text(h.enabled ? (d.online ? "Available" : "Offline") : "Unavailable")
+                    .font(.caption).foregroundStyle(.secondary)
+                }
+                if let problem = h.problem { Text(problem).font(.caption).foregroundStyle(.orange) }
               }
             }
             NavigationLink("Project awareness") { ProjectAwarenessView(computerID: d.id) }
@@ -521,6 +532,7 @@ struct ProjectAwarenessView: View {
 struct TasksView: View {
   @EnvironmentObject var model: AppModel
   @State private var error: String?
+  @State private var retrying = false
   var body: some View {
     NavigationStack {
       List {
@@ -529,19 +541,21 @@ struct TasksView: View {
             ForEach(model.pending) { Text($0.title) }
             Button("Retry delivery") {
               Task {
+                retrying = true
+                defer { retrying = false }
                 do {
                   try await model.flushPending()
                   error = nil
                 } catch { self.error = error.localizedDescription }
               }
-            }
+            }.disabled(retrying)
           }
         }
         if model.workspace.tasks.isEmpty && model.pending.isEmpty {
           ContentUnavailableView(
             "Your delegated work", systemImage: "checklist",
             description: Text(
-              "Ask Telegate to assign a task during a call. Its brief and delivery status will appear here."
+              "Start with a small text task to check your agent, or ask Telegate to delegate during a call."
             ))
         }
         if let error { Text(error).foregroundStyle(.red) }
@@ -567,6 +581,11 @@ struct TasksView: View {
           }
         }
       }.navigationTitle("Tasks").refreshable { try? await model.refresh() }
+        .toolbar {
+          Button("New task", systemImage: "plus") { model.composingTask = true }
+            .disabled(model.targets.isEmpty)
+        }
+        .sheet(isPresented: $model.composingTask) { NewTaskView() }
     }
   }
 }
@@ -655,12 +674,16 @@ struct SettingsView: View {
           ).font(.footnote).foregroundStyle(.secondary)
           Button("Try the shortcut action") { model.requestShortcut() }
         }
-        Section("OpenAI key") {
+        Section(model.hasKey ? "OpenAI key" : "Connect voice") {
           Text(
             "Saved in this phone’s Keychain. Audio and conversation go directly to OpenAI; Telegate’s relay receives task briefs and results."
           ).font(.footnote)
-          SecureField("Replacement API key", text: $key)
-          Button("Verify and replace key") {
+          SecureField(model.hasKey ? "Replacement API key" : "OpenAI project API key", text: $key)
+            .textInputAutocapitalization(.never).autocorrectionDisabled()
+          Link("Create an OpenAI API key", destination: URL(string: "https://platform.openai.com/api-keys")!)
+          Text("Your project needs GPT-Live and GPT-5.6 Terra access and API billing. Key verification does not start a paid call.")
+            .font(.footnote).foregroundStyle(.secondary)
+          Button(model.hasKey ? "Verify and replace key" : "Verify and connect voice") {
             Task {
               busy = true
               defer { busy = false }

@@ -3,6 +3,14 @@ import XCTest
 @testable import Telegate
 
 final class ProtocolTests: XCTestCase {
+  func testSignedBuildCanPersistCredentialsInKeychain() throws {
+    let key = "readiness-test-\(UUID().uuidString)"
+    defer { SecureStore.remove(key) }
+    try SecureStore.set("disposable-test-value", for: key)
+    XCTAssertEqual(SecureStore.get(key), "disposable-test-value")
+    try SecureStore.set("updated-test-value", for: key)
+    XCTAssertEqual(SecureStore.get(key), "updated-test-value")
+  }
   func testBuildFlavorMatchesPushAvailability() {
     #if TELEGATE_DIY
       XCTAssertFalse(AppConfiguration.supportsPush)

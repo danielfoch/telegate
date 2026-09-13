@@ -36,7 +36,7 @@ final class NoRedirect: NSObject, URLSessionTaskDelegate {
 }
 enum HTTP {
   // Redirects cannot forward BYOK or computer credentials to a different destination.
-  static let session = URLSession(
+  static var session = URLSession(
     configuration: .ephemeral, delegate: NoRedirect(), delegateQueue: nil)
   static func json(_ url: URL, token: String?, body: [String: Any]? = nil) async throws -> Data {
     var r = URLRequest(url: url)

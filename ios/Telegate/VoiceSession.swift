@@ -162,7 +162,7 @@ final class VoiceSession: NSObject, ObservableObject {
   func commentary(_ content: String, delegation: String?) {
     send([
       "type": "session.commentary.append", "delegation_id": delegation as Any? ?? NSNull(),
-      "content": String(content.prefix(1100)),
+      "content": content.utf8Prefix(480),
     ])
   }
   func send(_ event: [String: Any]) {

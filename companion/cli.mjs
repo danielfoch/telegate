@@ -5,11 +5,16 @@ import { homedir, hostname, platform } from 'node:os';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { inspectAgentCLI, agentKinds, agentNames } from './agent-cli.mjs';
+import { available } from './runner.mjs';
 import { atomicJSON, readJSON, request, startPairing, runConnector, validateService } from './client.mjs';
 
 const args=process.argv.slice(2), command=args[0]||'setup';
 const configPath=resolve(process.env.TELEGATE_CONFIG||join(homedir(),'.config','telegate','computer.json'));
-if(command==='run') {
+if(command==='check') {
+  if(Number(process.versions.node.split('.')[0])<24)throw new Error('Install Node.js 24 or newer.');
+  const config=await readJSON(configPath,{harnesses:[]});
+  console.log(JSON.stringify({harnesses:await available(config.harnesses||[])}));
+} else if(command==='run') {
   const controller=new AbortController();for(const s of ['SIGINT','SIGTERM'])process.once(s,()=>controller.abort());
   await runConnector(configPath,{signal:controller.signal}).catch(e=>{console.error(e.message);process.exitCode=1;});
 } else {

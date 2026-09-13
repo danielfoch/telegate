@@ -18,6 +18,9 @@ enum SecureStore {
       status = SecItemAdd(item as CFDictionary, nil)
     }
     guard status == errSecSuccess else {
+      if status == -34018 {
+        throw UserFacingError(message: "This build is missing Keychain signing entitlements. Run a signed build from Xcode and reinstall Telegate; an unsigned build can compile but cannot save your account or voice key.")
+      }
       throw UserFacingError(message: "Couldn’t save credentials in Keychain (\(status)).")
     }
   }

@@ -5,6 +5,7 @@ struct Harness: Codable, Identifiable, Hashable {
   var name: String
   var kind: String
   var enabled: Bool
+  var problem: String? = nil
 }
 struct Computer: Codable, Identifiable, Hashable {
   var id: String

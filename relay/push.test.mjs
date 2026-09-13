@@ -72,3 +72,17 @@ test('notification task lookup can retrieve older work and never another account
   const bob=await request(f.base,null,'/v1/auth/register',{username:'bob',password:'another-test-password'});
   await assert.rejects(request(f.base,bob.token,'/v1/tasks/'+task.id),/not found/);
 });
+
+test('stalled work expires and alerts its owner without waiting for the phone to refresh',async t=>{
+  const f=await setup(t);
+  await request(f.base,f.u.token,'/v1/notifications/register',{token:'bc'.repeat(32),environment:'sandbox'});
+  await f.create();const job=await f.claim();
+  f.clock.time+=121000;
+  // Exercise the timer's flush path directly; no incoming HTTP request triggers expiry.
+  await f.relay.flushPush();
+  assert.equal(f.relay.db.prepare('SELECT status FROM tasks WHERE id=?').get(job.id).status,'needs_attention');
+  assert.equal(f.deliveries.length,1);
+  assert.equal(f.deliveries[0].payload.taskId,job.id);
+  assert.match(f.deliveries[0].payload.aps.alert.title,/needs attention/);
+  await f.relay.flushPush();assert.equal(f.deliveries.length,1);
+});
