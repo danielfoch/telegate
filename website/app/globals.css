@@ -2060,3 +2060,6 @@ h2 {
 .copy-status {
   display: block;
 }
+
+/* The approved Telegate mark keeps the existing site palette. */
+.telegate-mark { display: block; flex-shrink: 0; object-fit: contain; border-radius: 22%; }

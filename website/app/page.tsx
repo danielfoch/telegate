@@ -305,7 +305,7 @@ export default function Home() {
       </a>
       <header className="navigation">
         <a href="#top" className="brand" aria-label="Telegate home">
-          <AudioLines aria-hidden="true" />
+          <Image src="/telegate-icon.png" width={40} height={40} alt="" unoptimized className="telegate-mark" />
           telegate<span>↗</span>
         </a>
         <nav aria-label="Main navigation">
@@ -621,7 +621,7 @@ export default function Home() {
             </span>
             <ArrowRight size={19} />
             <span className="route-telegate">
-              <AudioLines size={24} /> telegate
+              <Image src="/telegate-icon.png" width={32} height={32} alt="" unoptimized className="telegate-mark" /> telegate
             </span>
             <span className="brief-badge">
               Your brief <Check size={13} />
@@ -713,7 +713,7 @@ export default function Home() {
         </div>
         <div className="footer-bottom">
           <a href="#top" className="brand">
-            <AudioLines />
+            <Image src="/telegate-icon.png" width={32} height={32} alt="" unoptimized className="telegate-mark" />
             telegate
           </a>
           <span>More life. Less screen.</span>

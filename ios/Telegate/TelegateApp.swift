@@ -118,8 +118,9 @@ struct RootView: View {
 struct Brand: View {
   var body: some View {
     HStack(spacing: 10) {
-      Image(systemName: "phone.arrow.up.right.fill").font(.title2).padding(12).background(
-        Palette.mint, in: RoundedRectangle(cornerRadius: 15))
+      Image("TelegateMark").resizable().scaledToFit()
+        .frame(width: 52, height: 52).clipShape(RoundedRectangle(cornerRadius: 15))
+        .accessibilityHidden(true)
       Text("telegate").font(.system(size: 32, weight: .bold, design: .rounded)).tracking(-1)
     }.foregroundStyle(Palette.ink)
   }

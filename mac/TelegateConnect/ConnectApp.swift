@@ -492,10 +492,9 @@ struct ConnectView: View {
   }
   private var header: some View {
     HStack(spacing: 12) {
-      Image(systemName: "phone.arrow.up.right.fill")
-        .font(.system(size: 23, weight: .semibold)).foregroundStyle(ConnectStyle.accent)
+      Image("TelegateMark").resizable().scaledToFit()
         .frame(width: 46, height: 46)
-        .background(ConnectStyle.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 14)).accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 2) {
         Text("telegate").font(.system(size: 24, weight: .bold, design: .rounded))
         Text("CONNECT").font(.system(size: 10, weight: .semibold)).tracking(2.5).foregroundStyle(.secondary)

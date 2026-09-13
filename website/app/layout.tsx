@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: 'Telegate — More life. Less screen.',
   description:
     'Talk through your next idea, then delegate it to your AI agents. Open-source voice delegation for iPhone, your computers and cloud harnesses.',
-  icons: { icon: '/favicon.svg' },
+  icons: { icon: '/favicon.png', apple: '/apple-touch-icon.png' },
   openGraph: {
     title: 'Telegate — More life. Less screen.',
     description:
