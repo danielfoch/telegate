@@ -7,7 +7,9 @@ Your desk, on call. Keep Connect running on the Mac that will do the work, then 
 3. Click **Pair my phone**. On your phone, open **Computers → Add computer**, enter the code, and confirm this Mac’s name. Pairing codes expire after ten minutes. Copy buttons let you copy the code and service address separately.
 4. Leave Connect open and your Mac awake. The phone’s computer status confirms the relay is receiving heartbeats. **Pause connection** stops the local connector; pause before changing agent settings.
 
-**Configure** opens one agent’s settings. Changes apply only when saved; Cancel leaves the current configuration intact. Executable paths, custom arguments, OpenClaw agent selection and time limits are under **Advanced settings**. Removing an agent removes its Connect entry; it does not uninstall the agent.
+**Configure** opens one agent’s settings. Changes apply only when saved; Cancel leaves the current configuration intact. For Codex and Claude Code, **Approvals** chooses how the agent handles permission prompts while it runs unattended: **Automatic review** (default; `codex exec --approve-for-me` inside the workspace sandbox, or Claude Code’s `--permission-mode auto`), **File edits only** (Claude Code accepts edits and declines commands that need approval, so some tasks come back needing attention), or **Full access, no sandbox** for folders you fully trust. A brief can never change this setting. Executable paths, custom arguments, OpenClaw agent selection and time limits are under **Advanced settings**. Removing an agent removes its Connect entry; it does not uninstall the agent.
+
+The main card shows the service address with a **Copy address** button so you can paste it into the phone. If the address changes (for example a restarted temporary tunnel), pause the connection, change it in **Settings**, and start again; the pairing stays valid because it belongs to the relay, not to the hostname.
 
 **Open at login** starts the app at login. **Activity** shows connector details for troubleshooting.
 

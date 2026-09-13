@@ -83,6 +83,10 @@ npm start
 
 It binds to loopback by default and stores data under `data/telegate.sqlite`. No OpenAI key belongs in the relay’s environment.
 
+### Test from your phone without hosting yet
+
+`scripts/local-relay.sh install` runs the relay on this Mac behind a temporary Cloudflare quick tunnel and keeps both alive with launchd, so a phone on any network can reach it over HTTPS. `status` prints the current address and health; `url` prints only the address; `restart` gets a fresh one. Quick tunnels change hostname whenever they restart, so use the address it prints on both devices and update it in the phone’s **Settings → Change service address…** and in Connect’s Settings if it changes. Requires `cloudflared` (`brew install cloudflared`) and `secrets/relay-preview.env`. For everyday use, host the relay permanently ([SELF-HOST.md](docs/SELF-HOST.md)).
+
 ### First real-device trial
 
 1. Deploy the relay over HTTPS (see [Release guide](docs/RELEASE.md)). Install a signed iPhone build and Telegate Connect on the computer.

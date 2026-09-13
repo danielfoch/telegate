@@ -44,6 +44,45 @@ enum Palette {
   static let ink = Color(red: 0.08, green: 0.13, blue: 0.16)
   static let paper = Color(red: 0.96, green: 0.97, blue: 0.94)
   static let mint = Color(red: 0.68, green: 0.95, blue: 0.56)
+  /// SF Symbol for a harness kind, so lists read at a glance.
+  static func harnessSymbol(_ kind: String) -> String {
+    switch kind {
+    case "codex": "chevron.left.forwardslash.chevron.right"
+    case "claude": "sparkles"
+    case "openclaw": "pawprint"
+    case "hermes": "wand.and.stars"
+    case "webhook": "cloud"
+    default: "terminal"
+    }
+  }
+}
+/// Colour-coded task status, so a glance at Tasks tells you what still needs you.
+struct StatusBadge: View {
+  let status: String
+  var body: some View {
+    Text(status.replacingOccurrences(of: "_", with: " ").capitalized)
+      .font(.caption.bold()).padding(.horizontal, 10).padding(.vertical, 4)
+      .background(tint.opacity(0.14), in: Capsule()).foregroundStyle(tint)
+  }
+  private var tint: Color {
+    switch status {
+    case "completed": .green
+    case "running", "submitted": .blue
+    case "queued": Color(red: 0.55, green: 0.42, blue: 0.05)
+    case "failed": .red
+    case "needs_attention": .orange
+    default: .secondary
+    }
+  }
+}
+/// Keeps every list and form on the brand's paper background instead of the system grey.
+struct PaperBackground: ViewModifier {
+  func body(content: Content) -> some View {
+    content.scrollContentBackground(.hidden).background(Palette.paper)
+  }
+}
+extension View {
+  func paperBackground() -> some View { modifier(PaperBackground()) }
 }
 struct RootView: View {
   @EnvironmentObject var model: AppModel
@@ -92,6 +131,8 @@ struct OnboardingView: View {
   @State private var key = ""
   @State private var recovery = ""
   @State private var service = AppConfiguration.service
+  // Open the address field automatically when this build has no usable relay address yet.
+  @State private var showService = AppConfiguration.validService(AppConfiguration.service) == nil
   @State private var mode = "register"
   @State private var busy = false
   @State private var error: String?
@@ -124,13 +165,34 @@ struct OnboardingView: View {
               ).textContentType(mode == "login" ? .password : .newPassword)
               if mode == "recover" { SecureField("Recovery key", text: $recovery) }
             }.padding(20).background(.white, in: RoundedRectangle(cornerRadius: 20))
-            DisclosureGroup("Service address") {
-              TextField("HTTPS address from your administrator", text: $service).keyboardType(.URL)
-                .textInputAutocapitalization(.never).autocorrectionDisabled()
-              Text(
-                "Use the same Telegate service address on your phone and computer."
-              ).font(.caption).foregroundStyle(.secondary)
-            }
+            DisclosureGroup(isExpanded: $showService) {
+              VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 10) {
+                  TextField("https://your-relay.example.com", text: $service).keyboardType(.URL)
+                    .textContentType(.URL).textInputAutocapitalization(.never)
+                    .autocorrectionDisabled().submitLabel(.done)
+                  PasteButton(payloadType: String.self) { strings in
+                    if let pasted = strings.first {
+                      service = pasted.trimmingCharacters(in: .whitespacesAndNewlines)
+                    }
+                  }.labelStyle(.iconOnly).buttonBorderShape(.capsule)
+                    .accessibilityLabel("Paste service address")
+                }
+                Text(AppConfiguration.serviceHint).font(.caption).foregroundStyle(.secondary)
+                if !service.isEmpty && AppConfiguration.normalizedService(service) == nil {
+                  Text("Use the full HTTPS address without a path, for example https://relay.example.com.")
+                    .font(.caption).foregroundStyle(.red)
+                }
+              }.padding(.top, 10)
+            } label: {
+              VStack(alignment: .leading, spacing: 3) {
+                Text("Service address").font(.headline)
+                Text(
+                  AppConfiguration.normalizedService(service).flatMap { URL(string: $0)?.host }
+                    ?? "Not set yet · enter your relay address"
+                ).font(.caption).foregroundStyle(.secondary)
+              }
+            }.padding(20).background(.white, in: RoundedRectangle(cornerRadius: 20))
             Button {
               Task { await authenticate() }
             } label: {
@@ -160,6 +222,9 @@ struct OnboardingView: View {
             } label: {
               buttonLabel("Connect voice")
             }.disabled(busy || key.isEmpty)
+            Button("Not \(model.login?.username ?? "you")? Sign out") {
+              Task { await model.signOut() }
+            }.font(.footnote).disabled(busy)
           }
           if let error { Text(error).foregroundStyle(.red).accessibilityLabel("Error: \(error)") }
           Text("Next: pair your computers, choose your agents, and start talking.").font(.footnote)
@@ -196,11 +261,13 @@ struct OnboardingView: View {
     busy = true
     error = nil
     defer { busy = false }
-    guard AppConfiguration.validService(service) != nil else {
-      error = "Enter the HTTPS service address supplied for this build."
+    guard let normalized = AppConfiguration.normalizedService(service) else {
+      showService = true
+      error = "Enter your relay’s HTTPS address first."
       return
     }
-    UserDefaults.standard.set(service, forKey: "serviceURL")
+    service = normalized
+    UserDefaults.standard.set(normalized, forKey: "serviceURL")
     do {
       recoveryToSave = try await model.authenticate(
         username: username, password: password, mode: mode,
@@ -351,9 +418,10 @@ struct ComputersView: View {
             }
             ForEach(d.harnesses) { h in
               HStack {
-                Label(h.name, systemImage: "terminal")
+                Label(h.name, systemImage: Palette.harnessSymbol(h.kind))
                 Spacer()
-                Text(h.enabled ? "Ready" : "Unavailable").font(.caption).foregroundStyle(.secondary)
+                Text(h.enabled ? "Ready" : "Unavailable").font(.caption).foregroundStyle(
+                  h.enabled ? Color.green : .secondary)
               }
             }
             NavigationLink("Project awareness") { ProjectAwarenessView(computerID: d.id) }
@@ -364,7 +432,7 @@ struct ComputersView: View {
             )
           }
         }
-      }.navigationTitle("Computers").toolbar {
+      }.paperBackground().navigationTitle("Computers").toolbar {
         Button {
           adding = true
           preview = nil
@@ -503,9 +571,8 @@ struct ProjectAwarenessView: View {
         }
       }
       if let error { Text(error).foregroundStyle(.red) }
-    }.navigationTitle("Project awareness").navigationBarTitleDisplayMode(.inline).refreshable {
-      try? await model.refresh()
-    }
+    }.paperBackground().navigationTitle("Project awareness").navigationBarTitleDisplayMode(.inline)
+      .refreshable { try? await model.refresh() }
   }
   func update(_ computer: Computer, minutes: Int? = nil, now: Bool = false) {
     Task {
@@ -552,12 +619,11 @@ struct TasksView: View {
             VStack(alignment: .leading, spacing: 8) {
               Text(task.title).font(.headline)
               HStack {
-                Text(task.status.replacingOccurrences(of: "_", with: " ").capitalized).font(
-                  .caption.bold())
+                StatusBadge(status: task.status)
                 Spacer()
-                Text(Date(timeIntervalSince1970: task.createdAt / 1000), style: .relative).font(
-                  .caption
-                ).foregroundStyle(.secondary)
+                Text(
+                  "\(Text(Date(timeIntervalSince1970: task.createdAt / 1000), style: .relative)) ago"
+                ).font(.caption).foregroundStyle(.secondary)
               }
               Text(
                 model.workspace.devices.first { $0.id == task.deviceId }?.name
@@ -566,7 +632,7 @@ struct TasksView: View {
             }
           }
         }
-      }.navigationTitle("Tasks").refreshable { try? await model.refresh() }
+      }.paperBackground().navigationTitle("Tasks").refreshable { try? await model.refresh() }
     }
   }
 }
@@ -580,11 +646,22 @@ struct TaskDetail: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
         Text(latest.title).font(.title.bold())
-        Text(latest.status.replacingOccurrences(of: "_", with: " ").capitalized).font(.headline)
+        HStack(spacing: 12) {
+          StatusBadge(status: latest.status)
+          Text(
+            model.workspace.devices.first { $0.id == latest.deviceId }?.name
+              ?? "Disconnected computer"
+          ).font(.caption).foregroundStyle(.secondary)
+        }
+        Text("BRIEF").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
         Text(latest.prompt).textSelection(.enabled)
+          .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+          .background(.white, in: RoundedRectangle(cornerRadius: 16))
         if !latest.result.isEmpty {
-          Divider()
+          Text("RESULT").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
           Text(latest.result).textSelection(.enabled)
+            .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+            .background(Palette.mint.opacity(0.3), in: RoundedRectangle(cornerRadius: 16))
         }
         if let id = latest.runId {
           Text("Harness session: \(id)").font(.caption.monospaced()).textSelection(.enabled)
@@ -605,7 +682,7 @@ struct TaskDetail: View {
         }
         if let error { Text(error).foregroundStyle(.red) }
       }.padding(24)
-    }.navigationTitle("Task").navigationBarTitleDisplayMode(.inline)
+    }.background(Palette.paper).navigationTitle("Task").navigationBarTitleDisplayMode(.inline)
   }
   func action(_ value: String) {
     Task {
@@ -628,6 +705,54 @@ struct TaskDetail: View {
     Task { await model.startVoice(followup: task, readSummary: read) }
   }
 }
+struct ServiceAddressSheet: View {
+  @EnvironmentObject var model: AppModel
+  @Environment(\.dismiss) private var dismiss
+  @State private var value = AppConfiguration.service
+  @State private var busy = false
+  @State private var error: String?
+  var body: some View {
+    NavigationStack {
+      Form {
+        Section {
+          HStack(spacing: 10) {
+            TextField("https://your-relay.example.com", text: $value).keyboardType(.URL)
+              .textContentType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+            PasteButton(payloadType: String.self) { strings in
+              if let pasted = strings.first {
+                value = pasted.trimmingCharacters(in: .whitespacesAndNewlines)
+              }
+            }.labelStyle(.iconOnly).buttonBorderShape(.capsule)
+              .accessibilityLabel("Paste service address")
+          }
+        } header: {
+          Text("Relay address")
+        } footer: {
+          Text(
+            "Use this when your relay’s address changed, for example after a temporary tunnel restarted. You stay signed in when the same relay answers at the new address. To move to a different relay, sign out first and enter its address when you sign in."
+          )
+        }
+        if let error { Text(error).foregroundStyle(.red) }
+        Button {
+          Task {
+            busy = true
+            defer { busy = false }
+            do {
+              try await model.changeService(value)
+              dismiss()
+            } catch { self.error = error.localizedDescription }
+          }
+        } label: {
+          HStack {
+            if busy { ProgressView() }
+            Text("Save and reconnect")
+          }
+        }.disabled(busy || AppConfiguration.normalizedService(value) == nil)
+      }.paperBackground().navigationTitle("Service address").navigationBarTitleDisplayMode(.inline)
+        .toolbar { Button("Cancel") { dismiss() } }
+    }
+  }
+}
 struct SettingsView: View {
   @EnvironmentObject var model: AppModel
   @State private var key = ""
@@ -635,6 +760,7 @@ struct SettingsView: View {
   @State private var error: String?
   @State private var busy = false
   @State private var deleting = false
+  @State private var changingService = false
   var body: some View {
     NavigationStack {
       Form {
@@ -646,10 +772,11 @@ struct SettingsView: View {
           ).font(.footnote).foregroundStyle(.secondary)
         }
         Section("Action Button") {
-          Label("Start voice chat", systemImage: "button.programmable")
+          Label("Start voice chat", systemImage: "waveform.circle.fill").foregroundStyle(
+            Palette.ink)
           Text(
             "On an iPhone with an Action Button: open Settings → Action Button → Shortcut → Choose a Shortcut → Telegate → Start voice chat."
-          )
+          ).font(.callout)
           Text(
             "Complete onboarding and allow the microphone first. The shortcut opens Telegate and starts a call with your selected destination. iPhone may ask you to unlock. You can also run it from Shortcuts or Siri."
           ).font(.footnote).foregroundStyle(.secondary)
@@ -673,13 +800,14 @@ struct SettingsView: View {
           }.disabled(key.isEmpty || busy || model.voice.state != .idle)
         }
         Section("Account") {
-          Text(model.login?.username ?? "")
-          Text(AppConfiguration.service).font(.caption).textSelection(.enabled)
-          Button("Sign out") {
-            Task {
-              do { try await model.signOut() } catch { self.error = error.localizedDescription }
-            }
-          }.disabled(busy || model.busy)
+          LabeledContent("Signed in as", value: model.login?.username ?? "")
+          LabeledContent("Service address") {
+            Text(URL(string: AppConfiguration.service)?.host ?? AppConfiguration.service)
+              .font(.caption).textSelection(.enabled).multilineTextAlignment(.trailing)
+          }
+          Button("Change service address…") { changingService = true }.disabled(
+            model.voice.state != .idle || model.busy)
+          Button("Sign out") { Task { await model.signOut() } }.disabled(busy || model.busy)
           Button("Delete account", role: .destructive) { deleting = true }.disabled(model.busy)
         }
         Section(AppConfiguration.supportsPush ? "Completion notifications" : "Completion updates") {
@@ -702,9 +830,10 @@ struct SettingsView: View {
           ).font(.footnote)
         }
         if let error { Text(error).foregroundStyle(.red) }
-      }.navigationTitle("Settings").onChange(of: model.autoSend) { _, value in
+      }.paperBackground().navigationTitle("Settings").onChange(of: model.autoSend) { _, value in
         UserDefaults.standard.set(value, forKey: "autoSend")
       }
+      .sheet(isPresented: $changingService) { ServiceAddressSheet() }
       .sheet(isPresented: $deleting) {
         NavigationStack {
           Form {
