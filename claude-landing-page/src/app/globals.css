@@ -1,0 +1,301 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Telegate — raw palette (ios/Telegate/TelegateApp.swift Palette)
+   ------------------------------------------------------------------ */
+:root {
+  color-scheme: light dark;
+
+  --ink-900: #14212a;
+  --ink-950: #0b1419;
+  --ink-975: #06090c;
+  --paper-50: #f5f7f0;
+  --paper-100: #eaeee4;
+  --mint-400: #adf28f;
+  --mint-500: #9fe382;
+  --mint-700: #2e7a1f;
+  --end-call: #e0402a;
+  --homies: #ea5536;
+  --bezel-light: #1c2c37;
+  --bezel-dark: #2a363d;
+
+  /* semantic — LIGHT */
+  --ground: var(--paper-50);
+  --ink: var(--ink-900);
+  --muted: #5b6a72;
+  --line: rgba(20, 33, 42, 0.12);
+  --surface: #ffffff;
+  --surface-2: var(--paper-100);
+  --mint: var(--mint-400);
+  --mint-text: var(--mint-700);
+  --mint-soft: rgba(173, 242, 143, 0.3);
+  --mint-tint: #e6f7dc;
+  --glow: rgba(173, 242, 143, 0.45);
+  --ok-text: #2e7a1f;
+  --pricing-ground: var(--mint-400);
+  --footer-ground: var(--ink-900);
+  --bezel: var(--bezel-light);
+  --nav-ground: rgba(245, 247, 240, 0.84);
+
+  /* fixed — never invert */
+  --terminal: var(--ink-950);
+  --terminal-card: #0f1a21;
+  --deep: var(--ink-950);
+  --paper-fixed: var(--paper-50);
+  --ink-fixed: var(--ink-900);
+  --muted-on-dark: #9fb0b8;
+  --line-on-dark: rgba(245, 247, 240, 0.14);
+  --surface-on-dark: rgba(245, 247, 240, 0.06);
+
+  /* motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 200ms;
+  --dur-reveal: 700ms;
+  --dur-ground: 900ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: var(--ink-900);
+    --ink: var(--paper-50);
+    --muted: #9fb0b8;
+    --line: rgba(245, 247, 240, 0.14);
+    --surface: #1c2c37;
+    --surface-2: #22343f;
+    --mint-text: var(--mint-400);
+    --mint-soft: rgba(173, 242, 143, 0.16);
+    --mint-tint: #1d3324;
+    --glow: rgba(173, 242, 143, 0.22);
+    --ok-text: #7ee39a;
+    --pricing-ground: var(--mint-500);
+    --footer-ground: var(--ink-975);
+    --deep: var(--ink-975);
+    --bezel: var(--bezel-dark);
+    --nav-ground: rgba(20, 33, 42, 0.84);
+  }
+}
+
+/* Ground scenes flip the text tokens for the fixed nav; bands paint their own backgrounds. */
+html[data-ground="terminal"],
+html[data-ground="deep"],
+html[data-ground="footer"] {
+  --nav-ink: var(--paper-fixed);
+  --nav-ground: rgba(11, 20, 25, 0.78);
+  --nav-line: var(--line-on-dark);
+}
+html[data-ground="mint"] {
+  --nav-ink: var(--ink-fixed);
+  --nav-ground: rgba(173, 242, 143, 0.82);
+  --nav-line: rgba(20, 33, 42, 0.18);
+}
+html[data-ground="paper"] {
+  --nav-ink: var(--ink);
+  --nav-line: var(--line);
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-mint: var(--mint);
+  --color-mint-text: var(--mint-text);
+  --color-mint-soft: var(--mint-soft);
+  --color-mint-tint: var(--mint-tint);
+  --color-ok-text: var(--ok-text);
+  --color-terminal: var(--terminal);
+  --color-terminal-card: var(--terminal-card);
+  --color-deep: var(--deep);
+  --color-paper-fixed: var(--paper-fixed);
+  --color-ink-fixed: var(--ink-fixed);
+  --color-muted-on-dark: var(--muted-on-dark);
+  --color-line-on-dark: var(--line-on-dark);
+  --color-surface-on-dark: var(--surface-on-dark);
+  --color-end-call: var(--end-call);
+  --color-homies: var(--homies);
+  --color-bezel: var(--bezel);
+  --color-pricing-ground: var(--pricing-ground);
+  --color-footer-ground: var(--footer-ground);
+
+  --font-display: var(--font-nunito), ui-rounded, -apple-system, system-ui, sans-serif;
+  --font-body: var(--font-inter), -apple-system, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-pill: 999px;
+  --radius-card: 24px;
+  --radius-sheet: 40px;
+
+  --ease-out: var(--ease-out);
+  --ease-standard: var(--ease-standard);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--mint);
+  color: var(--ink-fixed);
+}
+
+/* Display type */
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.98;
+}
+.display-sm {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.caption {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Focus */
+:focus-visible {
+  outline: 2px solid var(--mint-text);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ------------------------------------------------------------------
+   Waveform — bars animate transform only; amplitude via --amp on the wrap
+   ------------------------------------------------------------------ */
+.wave {
+  --amp: 0.25;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 44px;
+  transform: scaleY(var(--amp));
+  transform-origin: center;
+  transition: transform 320ms var(--ease-out);
+}
+.wave-bar {
+  width: 3px;
+  height: 44px;
+  border-radius: 2px;
+  background: var(--mint);
+  transform-origin: center;
+  transform: scaleY(0.2);
+  will-change: transform;
+  animation: wave-a 0.8s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -80ms);
+}
+.wave-bar:nth-child(4n + 1) { animation-name: wave-a; animation-duration: 0.72s; }
+.wave-bar:nth-child(4n + 2) { animation-name: wave-b; animation-duration: 0.95s; }
+.wave-bar:nth-child(4n + 3) { animation-name: wave-c; animation-duration: 0.61s; }
+.wave-bar:nth-child(4n + 4) { animation-name: wave-d; animation-duration: 0.84s; }
+.wave[data-mode="reply"] .wave-bar {
+  animation-direction: alternate-reverse;
+  background: linear-gradient(to top, var(--ink-fixed) 0%, var(--mint) 70%);
+}
+.wave[data-mode="idle"] .wave-bar {
+  animation-duration: 1.8s;
+}
+@keyframes wave-a { from { transform: scaleY(0.18); } 40% { transform: scaleY(0.62); } to { transform: scaleY(1); } }
+@keyframes wave-b { from { transform: scaleY(0.3); } 55% { transform: scaleY(0.9); } to { transform: scaleY(0.45); } }
+@keyframes wave-c { from { transform: scaleY(1); } 35% { transform: scaleY(0.35); } to { transform: scaleY(0.7); } }
+@keyframes wave-d { from { transform: scaleY(0.5); } 50% { transform: scaleY(0.2); } to { transform: scaleY(0.85); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-bar { animation: none; }
+  .wave-bar:nth-child(4n + 1) { transform: scaleY(0.55); }
+  .wave-bar:nth-child(4n + 2) { transform: scaleY(0.8); }
+  .wave-bar:nth-child(4n + 3) { transform: scaleY(0.35); }
+  .wave-bar:nth-child(4n + 4) { transform: scaleY(0.65); }
+}
+
+/* Breathing dot */
+.breathe { animation: breathe 1.6s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+/* Relay heartbeat sparkline */
+.heartbeat { stroke-dasharray: 60 400; animation: heartbeat 1.8s linear infinite; }
+@keyframes heartbeat { from { stroke-dashoffset: 460; } to { stroke-dashoffset: 0; } }
+
+/* Voice arcs (hero) */
+.arc {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+[data-arcs="out"] .arc,
+[data-arcs="back"] .arc { animation: arc-out 1.4s ease-out infinite; animation-delay: calc(var(--k) * 0.35s); }
+@keyframes arc-out { 0% { transform: scale(0.18); opacity: 0.85; } 100% { transform: scale(1); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .arc { animation: none !important; opacity: 0; } }
+
+/* Prompt gutter cursor sweep */
+.gutter-blink { animation: gutter 0.5s ease-out 1 both; animation-delay: calc(var(--i) * 28ms); }
+@keyframes gutter { 0% { color: var(--paper-fixed); } 100% { color: var(--mint); } }
+
+/* Phone glass sheen */
+.sheen {
+  background: linear-gradient(115deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0) 60%);
+}
+
+/* Hide scrollbar for the horizontal fallback */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* Touch devices: idle float instead of pointer tilt */
+.float-idle { animation: float-idle 6s ease-in-out infinite; }
+@keyframes float-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .float-idle { animation: none; } }
+
+/* Prompt card lines: full text is in the DOM; only the visual reveal staggers */
+.prompt-line { display: block; padding-left: 22px; position: relative; opacity: 1; }
+.prompt-line::before { content: "›"; position: absolute; left: 0; color: var(--mint); font-weight: 600; }
+.prompt-body[data-shown="false"] .prompt-line { opacity: 0; }
+.prompt-body[data-shown="true"] .prompt-line { animation: line-in 0.4s var(--ease-out) both; animation-delay: calc(var(--i) * 30ms); }
+@keyframes line-in { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .prompt-body[data-shown="false"] .prompt-line { opacity: 1; }
+  .prompt-body[data-shown="true"] .prompt-line { animation: none; }
+}
+
+/* Mini phone waveform inside the routed diagram (SVG rects) */
+.svg-bar {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wave-a 0.8s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -90ms);
+}
+.svg-bar:nth-child(3n + 2) { animation-name: wave-b; animation-duration: 0.95s; }
+.svg-bar:nth-child(3n + 3) { animation-name: wave-c; animation-duration: 0.66s; }
+@media (prefers-reduced-motion: reduce) { .svg-bar { animation: none; transform: scaleY(0.6); } }
+
+/* Anchor targets clear the fixed nav */
+section[id], footer[id] { scroll-margin-top: 72px; }
