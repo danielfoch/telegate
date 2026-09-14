@@ -45,7 +45,7 @@ Then run the physical-device acceptance cases in [RELEASE.md](RELEASE.md). Do no
 | Native GPT-Live WebRTC | `ios/Telegate/VoiceSession.swift` |
 | Structured task planning | `ios/Telegate/BriefPlanner.swift` |
 | App Shortcut and push handling | `ios/Telegate/Shortcuts.swift`, `Notifications.swift` |
-| Native Mac setup/Keychain/start at login | `mac/TelegateConnect/ConnectApp.swift` |
+| Native Mac setup/pairing/start at login | `mac/TelegateConnect/ConnectApp.swift` |
 | Pairing, polling, durable local state | `companion/client.mjs` |
 | Harness command/cloud adapters | `companion/runner.mjs` |
 | Project scan scheduler and collector | `companion/projects.mjs` |

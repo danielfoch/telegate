@@ -62,6 +62,9 @@ struct ComputerConfiguration: Codable {
   var service: String
   var name: String
   var deviceId: String?
+  /// Device token for this pairing. Kept in this private (0600) file, like the CLI
+  /// companion's config; revoke the computer from the phone to invalidate it.
+  var deviceToken: String?
   var harnesses: [LocalHarness]
 }
 @MainActor final class ConnectModel: ObservableObject {
@@ -73,8 +76,10 @@ struct ComputerConfiguration: Codable {
   @Published var connected = false
   @Published var busy = false
   @Published var error: String?
-  /// Set when the config says this Mac is paired but its keychain credential cannot be read.
+  /// Set when the config says this Mac is paired but no usable device token is stored.
   @Published var credentialProblem: String?
+  private var deviceToken: String?
+  private var pendingSecret: String?
   @Published var log = ""
   @Published var node = "/opt/homebrew/bin/node"
   @Published var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -99,7 +104,21 @@ struct ComputerConfiguration: Codable {
       service = config.service
       name = config.name
       deviceId = config.deviceId
+      deviceToken = config.deviceToken
       harnesses = config.harnesses
+    }
+    if deviceToken == nil, deviceId != nil {
+      // Earlier builds kept the token in the macOS keychain. Move it into the config
+      // file once if it can be read; otherwise the window offers a one-step re-pair.
+      let legacy = SecureStore.lookup("computer")
+      if let token = legacy.value {
+        deviceToken = token
+        try? save()
+        SecureStore.remove("computer")
+        SecureStore.remove("pending-computer")
+      } else {
+        credentialProblem = "the earlier build stored it in the macOS keychain and it can’t be read (\(SecureStore.describe(legacy.status)))"
+      }
     }
     node =
       UserDefaults.standard.string(forKey: "nodeExecutable")
@@ -130,7 +149,7 @@ struct ComputerConfiguration: Codable {
       }
     }
     let value = ComputerConfiguration(
-      service: service, name: name, deviceId: deviceId, harnesses: harnesses)
+      service: service, name: name, deviceId: deviceId, deviceToken: deviceToken, harnesses: harnesses)
     try FileManager.default.createDirectory(
       at: configURL.deletingLastPathComponent(), withIntermediateDirectories: true,
       attributes: [.posixPermissions: 0o700])
@@ -189,7 +208,7 @@ struct ComputerConfiguration: Codable {
         throw UserFacingError(message: "Couldn’t create a computer credential.")
       }
       let secret = Data(bytes).base64EncodedString()
-      try SecureStore.set(secret, for: "pending-computer")
+      pendingSecret = secret
       let digest = SHA256.hash(data: Data(secret.utf8)).map { String(format: "%02x", $0) }.joined()
       let summaries = harnesses.map {
         ["id": $0.id, "name": $0.name, "kind": $0.kind, "enabled": $0.enabled] as [String: Any]
@@ -208,8 +227,9 @@ struct ComputerConfiguration: Codable {
             let status: PairStatus = try await RelayAPI(service: self.service, token: secret)
               .request("/v1/pair/status")
             if status.status == "paired" {
-              try SecureStore.set(secret, for: "computer")
-              SecureStore.remove("pending-computer")
+              self.deviceToken = secret
+              self.pendingSecret = nil
+              self.credentialProblem = nil
               self.deviceId = status.deviceId
               self.pair = nil
               try self.save()
@@ -238,13 +258,11 @@ struct ComputerConfiguration: Codable {
       guard deviceId != nil else {
         throw UserFacingError(message: "Pair this Mac with your phone first.")
       }
-      let credential = SecureStore.lookup("computer")
-      guard let secret = credential.value else {
-        let reason = SecureStore.describe(credential.status)
-        credentialProblem = reason
-        log += "Could not read the paired credential: \(reason) [\(credential.status)].\n"
+      guard let secret = deviceToken else {
+        if credentialProblem == nil { credentialProblem = "no device token is stored for this pairing" }
+        log += "No stored device token for this pairing; re-pair to continue.\n"
         throw UserFacingError(
-          message: "This Mac is paired, but its credential can’t be read: \(reason). Unlock your login keychain and press Resume, or re-pair below.")
+          message: "This Mac is paired, but no device token is stored for it. Press Re-pair this Mac below to get a new code.")
       }
       credentialProblem = nil
       guard FileManager.default.isExecutableFile(atPath: node) else {
@@ -300,6 +318,8 @@ struct ComputerConfiguration: Codable {
     }
     SecureStore.remove("computer")
     SecureStore.remove("pending-computer")
+    deviceToken = nil
+    pendingSecret = nil
     deviceId = nil
     pair = nil
     credentialProblem = nil
@@ -535,7 +555,7 @@ struct ConnectView: View {
           Text(model.deviceId == nil ? "Your desk. On call." : "Take your ideas with you.")
             .font(.system(size: 27, weight: .semibold, design: .rounded))
           Text(model.name).font(.callout).foregroundStyle(.secondary)
-          Label(model.connected ? "Connector running" : model.deviceId != nil ? (model.credentialProblem == nil ? "Paired · paused" : "Paired · credential unreadable") : "Not paired yet",
+          Label(model.connected ? "Connector running" : model.deviceId != nil ? (model.credentialProblem == nil ? "Paired · paused" : "Paired · token missing") : "Not paired yet",
                 systemImage: model.connected ? "circle.fill" : "circle")
             .font(.caption.weight(.medium)).foregroundStyle(model.connected ? ConnectStyle.accent : .secondary)
         }
@@ -609,9 +629,9 @@ struct ConnectView: View {
           HStack(alignment: .top, spacing: 12) {
             Image(systemName: "key.slash").font(.title3).foregroundStyle(.orange)
             VStack(alignment: .leading, spacing: 6) {
-              Text("Paired, but the credential can’t be read: \(problem).")
+              Text("Paired, but \(problem).")
                 .font(.callout).fixedSize(horizontal: false, vertical: true)
-              Text("If your login keychain is locked, unlock it (Keychain Access → login) and press Resume. Otherwise re-pair: this forgets the old credential and shows a new code for your phone.")
+              Text("Re-pair once: this forgets the old pairing and shows a new code for your phone. The token is then kept in Connect’s private config file, not the keychain.")
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
               Button("Re-pair this Mac", systemImage: "arrow.triangle.2.circlepath") { Task { await model.repair() } }
                 .disabled(model.busy)

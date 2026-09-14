@@ -109,7 +109,7 @@ npm run connect -- check
 npm run connect -- run
 ```
 
-The setup wizard asks for the relay, computer name, harnesses, folders, and sharing preferences, then displays a phone pairing code. Its config and durable state live in `~/.config/telegate/` with restrictive file permissions. The native Mac companion keeps its device token in Keychain; the CLI uses its private config file. Do not copy one computer’s token to another: pair each separately.
+The setup wizard asks for the relay, computer name, harnesses, folders, and sharing preferences, then displays a phone pairing code. Its config and durable state live in `~/.config/telegate/` with restrictive file permissions. Both companions keep their device token in that private config file (the Mac app uses `~/Library/Application Support/Telegate/computer.json`, mode 0600); revoke the computer from the phone to invalidate a token. Do not copy one computer’s token to another: pair each separately.
 
 For a Windows command provided as a `.cmd` wrapper, configure its underlying executable (for example `node.exe` with the CLI script argument) rather than enabling a shell. The Windows companion is source-compatible but still needs Windows platform verification.
 
