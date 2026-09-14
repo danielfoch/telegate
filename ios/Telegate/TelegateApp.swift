@@ -343,6 +343,10 @@ struct CallView: View {
             }.font(.callout)
           }
           if let notice = model.notice { Text(notice).font(.callout).foregroundStyle(.secondary) }
+          if voice.endedByVoice && voice.state != .live {
+            Label("Call ended by your hang-up phrase.", systemImage: "phone.down.circle")
+              .font(.callout).foregroundStyle(.secondary)
+          }
           if model.busy {
             Label("Preparing your brief…", systemImage: "ellipsis.bubble").foregroundStyle(
               .secondary)
@@ -381,7 +385,10 @@ struct CallView: View {
             }
             Text(
               voice.state == .ending
-                ? "Finishing the call…" : "Ending a call keeps submitted work running."
+                ? "Finishing the call…"
+                : voice.state == .live
+                  ? "Say “\(model.effectiveHangUpPhrase)” to hang up. Submitted work keeps running."
+                  : "Ending a call keeps submitted work running."
             ).font(.caption).foregroundStyle(.secondary)
             Button {
               if voice.state == .idle { Task { await model.startVoice() } } else { voice.end() }
@@ -799,6 +806,14 @@ struct SettingsView: View {
             model.voice.state != .idle || model.busy)
           Text(
             "When off, Telegate prepares drafts for you to review in Tasks. When on, a clear request to delegate queues the brief automatically."
+          ).font(.footnote).foregroundStyle(.secondary)
+        }
+        Section("Hang-up phrase") {
+          TextField("Hang-up phrase", text: $model.hangUpPhrase, prompt: Text(HangUpPhrase.defaultPhrase))
+            .textInputAutocapitalization(.never).autocorrectionDisabled()
+            .disabled(model.voice.state != .idle)
+          Text(
+            "Say it on its own, or at the end of a short phrase like “okay, end call”. Telegate matches your live transcript once you stop speaking, so it works even while the assistant is talking. Up to \(HangUpPhrase.maxLength) characters; leave it blank to use “\(HangUpPhrase.defaultPhrase)”."
           ).font(.footnote).foregroundStyle(.secondary)
         }
         Section("Action Button") {

@@ -15,6 +15,15 @@ import UserNotifications
   @Published var autoSend = UserDefaults.standard.object(forKey: "autoSend") as? Bool ?? true {
     didSet { UserDefaults.standard.set(autoSend, forKey: "autoSend") }
   }
+  /// Spoken phrase that hangs up (Settings → Hang-up phrase). Stored as typed; matched normalized.
+  @Published var hangUpPhrase = UserDefaults.standard.string(forKey: HangUpPhrase.storageKey) ?? HangUpPhrase.defaultPhrase {
+    didSet {
+      if hangUpPhrase.count > HangUpPhrase.maxLength { hangUpPhrase = String(hangUpPhrase.prefix(HangUpPhrase.maxLength)) }
+      UserDefaults.standard.set(hangUpPhrase, forKey: HangUpPhrase.storageKey)
+    }
+  }
+  /// The phrase a call actually listens for: the saved one, or the default when it is blank.
+  var effectiveHangUpPhrase: String { HangUpPhrase.stored }
   @Published var error: String?
   @Published var notice: String?
   @Published var busy = false
@@ -62,6 +71,11 @@ import UserNotifications
     #if DEBUG
       // Preview skips the setup screen without claiming a key exists or enabling paid calls.
       if ProcessInfo.processInfo.arguments.contains("--ui-preview-without-key") { deferVoiceSetup = true }
+      // Screenshot the signed-in tabs without an account: a placeholder login the relay rejects.
+      if ProcessInfo.processInfo.arguments.contains("--ui-preview-signed-in") {
+        deferVoiceSetup = true
+        login = Login(token: "", userId: "preview", username: "preview")
+      }
     #endif
     if loadSavedState { loadPending() }
     voice.onDelegation = { [weak self] id in
@@ -192,6 +206,7 @@ import UserNotifications
     guard voice.state == .idle, !busy, !startingVoice else { return }
     startingVoice = true
     defer { startingVoice = false }
+    voice.endedByVoice = false
     guard login != nil, hasKey else {
       tab = 3
       error = "Finish account and voice setup first."
@@ -234,8 +249,10 @@ import UserNotifications
     UserDefaults.standard.set(selection, forKey: "selectedTarget")
     UserDefaults.standard.set(autoSend, forKey: "autoSend")
     let chosen = targets.first { $0.id == selection }?.label ?? "the selected computer"
+    let hangUp = effectiveHangUpPhrase
+    voice.hangUpPhrase = hangUp
     let instructions = """
-      You are Telegate, a concise, warm voice assistant for delegating work. Listen naturally; brief pauses are fine. When the user asks to assign real work, delegate to the client to prepare a task brief. Don’t keep asking where to focus if the user asks for a broad improvement. Ask only essential clarifications. Selected destination: \(chosen). The user can name another paired destination. \(autoSend ? "Send requested briefs automatically; the app will report whether they are actually queued." : "Prepare drafts for the user to review and send in the app.") Never say work has been submitted or completed unless the app confirms it. On a delegation, say you’re preparing it, then wait for the app’s result. You do not perform coding yourself. Ending this voice chat does not cancel submitted work.
+      You are Telegate, a concise, warm voice assistant for delegating work. Listen naturally; brief pauses are fine. When the user asks to assign real work, delegate to the client to prepare a task brief. Don’t keep asking where to focus if the user asks for a broad improvement. Ask only essential clarifications. Selected destination: \(chosen). The user can name another paired destination. \(autoSend ? "Send requested briefs automatically; the app will report whether they are actually queued." : "Prepare drafts for the user to review and send in the app.") Never say work has been submitted or completed unless the app confirms it. On a delegation, say you’re preparing it, then wait for the app’s result. You do not perform coding yourself. Ending this voice chat does not cancel submitted work. If the user says “\(hangUp)”, stop speaking and do not reply: the app ends the call immediately.
       """
     let followupInstructions =
       followup == nil
@@ -427,6 +444,7 @@ import UserNotifications
     workspace = Workspace(devices: [], tasks: [])
     pending = []
     voice.transcript = []
+    voice.endedByVoice = false
     presentedTask = nil
     pendingNotificationTask = nil
     sessionParentTask = nil

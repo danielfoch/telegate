@@ -44,7 +44,7 @@ This is a separate product from Homies Voice. It does not change the existing Ho
 
 - SwiftUI iPhone/iPad app with account creation, login, recovery, deletion, and OpenAI key verification. The key is saved in the device’s Keychain and sent only to OpenAI.
 - Native WebRTC microphone and speaker connection to GPT-Live, transcript events, client delegation, and GPT-5.6 Terra task brief preparation.
-- A large Start/End call control, microphone-permission recovery, interruption handling, and graceful session close.
+- A large Start/End call control, a spoken hang-up phrase (default “end call”, editable in Settings, matched on your live transcript), microphone-permission recovery, interruption handling, and graceful session close.
 - A `Start voice chat` App Shortcut for Siri, Shortcuts, and an iPhone Action Button. The user assigns it in Settings; the app cannot change the hardware-button setting itself.
 - Native **Telegate Connect** for Mac: a visual agent picker with recognizable icons, a simple phone-pairing card, and optional advanced settings. [Mac setup guide](docs/CONNECT.md).
 - Portable Node companion for macOS, Linux, and Windows-compatible command harnesses. It requires Node 24+ and installed, authenticated harness executables.

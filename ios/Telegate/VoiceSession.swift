@@ -11,6 +11,16 @@ final class VoiceSession: NSObject, ObservableObject {
   @Published var elapsed = 0
   @Published private(set) var speakerOn = false
   @Published private(set) var audioOutput = "iPhone speaker"
+  /// True once the user's spoken hang-up phrase ended the current or last call.
+  @Published var endedByVoice = false
+  /// Normalized phrase that ends the call when the user says it (see HangUpPhrase).
+  var hangUpPhrase = HangUpPhrase.defaultPhrase
+  /// How long the user's transcript must stay quiet before the utterance is judged.
+  var hangUpSettle: Duration = .milliseconds(800)
+  /// The user's current utterance, gathered across fragments regardless of assistant speech.
+  private var utterance = ""
+  private var lastUserDeltaAt = Date.distantPast
+  private var hangUpCheck: Task<Void, Never>?
   var onDelegation: ((String) -> Void)?
   private var peer: RTCPeerConnection?
   private var channel: RTCDataChannel?
@@ -95,6 +105,9 @@ final class VoiceSession: NSObject, ObservableObject {
     guard state == .idle else { return }
     state = .connecting
     error = nil
+    endedByVoice = false
+    utterance = ""
+    hangUpCheck?.cancel()
     transcript = []
     elapsed = 0
     let run = UUID()
@@ -247,6 +260,9 @@ final class VoiceSession: NSObject, ObservableObject {
     generation = UUID()
     deadline?.cancel()
     deadline = nil
+    hangUpCheck?.cancel()
+    hangUpCheck = nil
+    utterance = ""
     clock?.cancel()
     clock = nil
     track?.isEnabled = false
@@ -263,6 +279,37 @@ final class VoiceSession: NSObject, ObservableObject {
     try? audio.overrideOutputAudioPort(.none)
     try? audio.setActive(false)
     audio.unlockForConfiguration()
+  }
+  /// Appends a transcript fragment for display and, for the user, to the current utterance.
+  /// The hang-up phrase is judged only once the utterance has settled (see `hangUpSettle`).
+  func ingestTranscript(role: String, delta: String) {
+    let now = Date()
+    if transcript.last?.role == role && now.timeIntervalSince(lastDeltaAt) < 2 {
+      transcript[transcript.count - 1].text += delta
+    } else {
+      transcript.append(TranscriptLine(role: role, text: delta))
+    }
+    lastDeltaAt = now
+    guard role == "user" else { return }
+    if now.timeIntervalSince(lastUserDeltaAt) >= 2 { utterance = "" }
+    utterance += delta
+    lastUserDeltaAt = now
+    hangUpCheck?.cancel()
+    guard state == .live else { return }
+    hangUpCheck = Task { [settle = hangUpSettle] in
+      try? await Task.sleep(for: settle)
+      guard !Task.isCancelled else { return }
+      self.settleHangUpCheck()
+    }
+  }
+  /// Judges the current user utterance now (the settle timer calls this; tests call it directly).
+  func settleHangUpCheck() {
+    hangUpCheck?.cancel()
+    hangUpCheck = nil
+    guard state == .live, HangUpPhrase.matches(utterance: utterance, phrase: hangUpPhrase) else { return }
+    utterance = ""
+    endedByVoice = true
+    end()
   }
   private func receive(_ data: Data, from dc: RTCDataChannel) {
     guard dc === channel, let e = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
@@ -287,14 +334,7 @@ final class VoiceSession: NSObject, ObservableObject {
       }
     case "session.input_transcript.delta", "session.output_transcript.delta":
       guard let text = e["delta"] as? String else { return }
-      let role = type.contains("input") ? "user" : "assistant"
-      let now = Date()
-      if transcript.last?.role == role && now.timeIntervalSince(lastDeltaAt) < 2 {
-        transcript[transcript.count - 1].text += text
-      } else {
-        transcript.append(TranscriptLine(role: role, text: text))
-      }
-      lastDeltaAt = now
+      ingestTranscript(role: type.contains("input") ? "user" : "assistant", delta: text)
     case "session.delegation.created":
       guard let d = e["delegation"] as? [String: Any], d["target"] as? String == "client",
         let id = d["id"] as? String
