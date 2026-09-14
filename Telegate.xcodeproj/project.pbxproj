@@ -10,23 +10,31 @@
 		00306B472B35B5A3B50C495C /* BriefPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D174EC2584D1384A812C9B9E /* BriefPlanner.swift */; };
 		065F346AA81413C6627F207D /* SecureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B535AA4B6C6CA6D8DC7BA30 /* SecureStore.swift */; };
 		105483444DF401E3BF089681 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D35B9F50CBAEF3248857B8 /* Models.swift */; };
+		10A3A47DDB5CD6ED7F8A1DE1 /* PreviewCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED1EF71E3C35B595F9F72BA0 /* PreviewCapture.swift */; };
 		123C080575E8F1C973DC68DE /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D35B9F50CBAEF3248857B8 /* Models.swift */; };
 		165DD3BF9C63E6E7504D8009 /* RelayAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD696F2545102B0FF5AD62D5 /* RelayAPI.swift */; };
 		270D21FD02338EA91113FEF1 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E13F13A4F9445E3ED26D7EF /* DashboardView.swift */; };
 		2813AF1535133A9D03F95637 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5A6A3EEDEB0888121413AD4E /* PrivacyInfo.xcprivacy */; };
+		2AFF047D4996982AB639E9A5 /* MenuBarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7A317D8222AC1AFBC8F837 /* MenuBarContent.swift */; };
+		2CA1F52E427F0736DF007243 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BF6F49DC29E023E0E95566F /* ConnectView.swift */; };
+		3916FD93460EB56D0C042090 /* ConnectStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F15CC4C4BD5F19ECDA965D /* ConnectStyle.swift */; };
 		3F5755BC2D5232A4AA91FD1D /* RelayAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD696F2545102B0FF5AD62D5 /* RelayAPI.swift */; };
 		40D01AD04F9E98AAD720800C /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF7CAAA38B414082B86BC2A /* AppModel.swift */; };
+		42D3FD05D1B6256238DA43EF /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69DEEA1094D4A33358137DDE /* ActivityView.swift */; };
 		4790CC7DF9FD7F5461A497DD /* SecureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B535AA4B6C6CA6D8DC7BA30 /* SecureStore.swift */; };
 		4A1DDD81B9550A3EBEEBC19E /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B202B63B3FFF39041D6CC5 /* Notifications.swift */; };
+		6EEF50AE0ED002A3B2DCFB4C /* ConnectorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE21ABB50ED879C9E8030CB /* ConnectorState.swift */; };
 		8CB968E563BF27D738A16340 /* DeliveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85232216BCAD1114822CDABC /* DeliveryTests.swift */; };
 		8D9E42352CFB714C70BB8EC5 /* ConnectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E67D9DB9558C3F84D7DA738 /* ConnectApp.swift */; };
 		8FA6DB320FEAB2DB44E1FF46 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BF49F29960A18A0F8A91575 /* Assets.xcassets */; };
+		9C81A0A10AA6C06DDACFB0EF /* AgentEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A078319133E3DB5C94D4F07 /* AgentEditor.swift */; };
 		A3A16E4091A8C9C6FEF026F8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2FDDEAE76D8DA26B16959348 /* Assets.xcassets */; };
 		A9DA2CC2A63D29663DCD34C1 /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = 45BC8AFE10C70B5FF1E6A12B /* WebRTC */; };
 		AEB24F3A2671701E8BB476A8 /* Shortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A25BD5FEE12A493D8CB5B89 /* Shortcuts.swift */; };
 		B30721BA0E8FDFF9849938E5 /* ProtocolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D9FBDB90696F97F59BC149 /* ProtocolTests.swift */; };
 		B4AF9D1429526744FE312C37 /* companion in Resources */ = {isa = PBXBuildFile; fileRef = 038642A5328CBBDFEA7FCFF9 /* companion */; };
 		CBF8854EFB8A4DCF68FAD809 /* TelegateApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E20BB65FBF5AA941387AEC /* TelegateApp.swift */; };
+		D686A6C2DC563B7EA878499D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E2DADAD54FC70CE12F6A96 /* SettingsView.swift */; };
 		D7C7FAF54970F51620B00CEE /* SetupReadinessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0B8A87897BC22489EA1B53 /* SetupReadinessView.swift */; };
 		EC78B1AFA7E4695A18B74C7D /* VoiceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA299AE9ADE330E8CA23F542 /* VoiceSession.swift */; };
 /* End PBXBuildFile section */
@@ -50,11 +58,17 @@
 		2FDDEAE76D8DA26B16959348 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3CFDC45B068C4337D8CB75A1 /* DIY.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DIY.xcconfig; sourceTree = "<group>"; };
 		42FE869ACF22E62374BF9CD0 /* TelegateTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TelegateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		45E2DADAD54FC70CE12F6A96 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		4BF6F49DC29E023E0E95566F /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
 		4F0B8A87897BC22489EA1B53 /* SetupReadinessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupReadinessView.swift; sourceTree = "<group>"; };
+		5A078319133E3DB5C94D4F07 /* AgentEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentEditor.swift; sourceTree = "<group>"; };
 		5A6A3EEDEB0888121413AD4E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		69DEEA1094D4A33358137DDE /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		7B535AA4B6C6CA6D8DC7BA30 /* SecureStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureStore.swift; sourceTree = "<group>"; };
+		7DE21ABB50ED879C9E8030CB /* ConnectorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectorState.swift; sourceTree = "<group>"; };
 		85232216BCAD1114822CDABC /* DeliveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliveryTests.swift; sourceTree = "<group>"; };
 		8E13F13A4F9445E3ED26D7EF /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		A8F15CC4C4BD5F19ECDA965D /* ConnectStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectStyle.swift; sourceTree = "<group>"; };
 		ACF7CAAA38B414082B86BC2A /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		B2E20BB65FBF5AA941387AEC /* TelegateApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegateApp.swift; sourceTree = "<group>"; };
 		B3D9FBDB90696F97F59BC149 /* ProtocolTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolTests.swift; sourceTree = "<group>"; };
@@ -62,10 +76,12 @@
 		B9B202B63B3FFF39041D6CC5 /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		BD696F2545102B0FF5AD62D5 /* RelayAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayAPI.swift; sourceTree = "<group>"; };
 		C1D35B9F50CBAEF3248857B8 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		CB7A317D8222AC1AFBC8F837 /* MenuBarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContent.swift; sourceTree = "<group>"; };
 		D174EC2584D1384A812C9B9E /* BriefPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefPlanner.swift; sourceTree = "<group>"; };
 		DF49CC7C618CDB41FC14D556 /* Telegate.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Telegate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5E13C6C3CBFE96D97B0A7D4 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		EA299AE9ADE330E8CA23F542 /* VoiceSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSession.swift; sourceTree = "<group>"; };
+		ED1EF71E3C35B595F9F72BA0 /* PreviewCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewCapture.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,8 +109,16 @@
 		5CDD95FCA135A266FF41BD33 /* TelegateConnect */ = {
 			isa = PBXGroup;
 			children = (
+				69DEEA1094D4A33358137DDE /* ActivityView.swift */,
+				5A078319133E3DB5C94D4F07 /* AgentEditor.swift */,
 				2FDDEAE76D8DA26B16959348 /* Assets.xcassets */,
 				0E67D9DB9558C3F84D7DA738 /* ConnectApp.swift */,
+				7DE21ABB50ED879C9E8030CB /* ConnectorState.swift */,
+				A8F15CC4C4BD5F19ECDA965D /* ConnectStyle.swift */,
+				4BF6F49DC29E023E0E95566F /* ConnectView.swift */,
+				CB7A317D8222AC1AFBC8F837 /* MenuBarContent.swift */,
+				ED1EF71E3C35B595F9F72BA0 /* PreviewCapture.swift */,
+				45E2DADAD54FC70CE12F6A96 /* SettingsView.swift */,
 			);
 			name = TelegateConnect;
 			path = mac/TelegateConnect;
@@ -308,10 +332,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				42D3FD05D1B6256238DA43EF /* ActivityView.swift in Sources */,
+				9C81A0A10AA6C06DDACFB0EF /* AgentEditor.swift in Sources */,
 				8D9E42352CFB714C70BB8EC5 /* ConnectApp.swift in Sources */,
+				3916FD93460EB56D0C042090 /* ConnectStyle.swift in Sources */,
+				2CA1F52E427F0736DF007243 /* ConnectView.swift in Sources */,
+				6EEF50AE0ED002A3B2DCFB4C /* ConnectorState.swift in Sources */,
+				2AFF047D4996982AB639E9A5 /* MenuBarContent.swift in Sources */,
 				105483444DF401E3BF089681 /* Models.swift in Sources */,
+				10A3A47DDB5CD6ED7F8A1DE1 /* PreviewCapture.swift in Sources */,
 				165DD3BF9C63E6E7504D8009 /* RelayAPI.swift in Sources */,
 				4790CC7DF9FD7F5461A497DD /* SecureStore.swift in Sources */,
+				D686A6C2DC563B7EA878499D /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,6 +476,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -461,6 +494,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -495,6 +529,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;

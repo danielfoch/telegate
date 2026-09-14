@@ -225,6 +225,7 @@ export function createRelay({ database = ':memory:', now = Date.now, publicURL =
       if (method==='POST' && (p==='/v1/device/heartbeat'||p==='/v1/device/poll')) {
         const hs=harnesses(b.harnesses||JSON.parse(d.harnesses));
         run('UPDATE devices SET last_seen=?,harnesses=? WHERE id=?',now(),JSON.stringify(hs),d.id);
+        if (typeof b.name==='string' && b.name.trim() && b.name.length<=100 && b.name!==d.name) run('UPDATE devices SET name=? WHERE id=?',b.name.trim(),d.id);
         if (b.taskId && b.leaseId) run("UPDATE tasks SET lease_until=? WHERE id=? AND device_id=? AND lease_id=? AND status='running'",now()+120_000,b.taskId,d.id,b.leaseId);
         if (p.endsWith('heartbeat')) return {ok:true,scan};
         const ids=hs.filter(h=>h.enabled).map(h=>h.id);

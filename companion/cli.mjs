@@ -16,7 +16,7 @@ if(command==='check') {
   console.log(JSON.stringify({harnesses:await available(config.harnesses||[])}));
 } else if(command==='run') {
   const controller=new AbortController();for(const s of ['SIGINT','SIGTERM'])process.once(s,()=>controller.abort());
-  await runConnector(configPath,{signal:controller.signal}).catch(e=>{console.error(e.message);process.exitCode=1;});
+  await runConnector(configPath,{signal:controller.signal}).catch(e=>{console.error(e.message);process.exitCode=e.status===401?2:1;});
 } else {
   const rl=createInterface({input:stdin,output:stdout});
   const ask=async(label,initial='')=>(await rl.question(label+(initial?` [${initial}]`:'')+': ')).trim()||initial;

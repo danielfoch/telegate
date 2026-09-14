@@ -16,3 +16,4 @@ outputs/
 *.pem
 secrets/
 build-device/
+build-*/

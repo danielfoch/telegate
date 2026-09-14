@@ -48,7 +48,7 @@ export async function runConnector(configPath,{signal,log=console.log,pollMs=300
         const hs=await available(config.harnesses||[]);
         for(const h of hs){if(h.problem&&problems.get(h.id)!==h.problem)log(h.problem);problems.set(h.id,h.problem);}
         if(state.outbox){await request(config.service,secret,'/v1/device/result',state.outbox);state={active:null,outbox:null};await atomicJSON(statePath,state);log('Result delivered.');}
-        const {task,scan:scanPolicy}=await request(config.service,secret,'/v1/device/poll',{harnesses:hs});
+        const {task,scan:scanPolicy}=await request(config.service,secret,'/v1/device/poll',{harnesses:hs,name:config.name});
         // Scanning is read-only and bounded. Do not delay claiming/executing a queued task for it.
         if(!signal?.aborted)scheduleScan(config,secret,scanPolicy);
         if(!task){await sleep(pollMs);continue;}
@@ -72,5 +72,6 @@ export async function runConnector(configPath,{signal,log=console.log,pollMs=300
         log(`Task ${result.status}.`);
       }catch(e){if(e.status===401){revoked=true;throw e;}if(e.status===409&&state.outbox){log('Result lease no longer matches. Inspect local saved state before reconnecting.');throw e;}log(e.message);await sleep(pollMs);}
     }
+    if(revoked){log('This computer was disconnected by the phone. Pair it again.');process.exitCode=2;}
   }finally{workController?.abort();await Promise.allSettled([...scans]);await rm(lock,{recursive:true,force:true});}
 }
