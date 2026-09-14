@@ -24,17 +24,30 @@ enum SecureStore {
       throw UserFacingError(message: "Couldn’t save credentials in Keychain (\(status)).")
     }
   }
-  static func get(_ key: String) -> String? {
+  static func get(_ key: String) -> String? { lookup(key).value }
+  /// Reads a credential and reports why a read failed, so callers can tell a
+  /// locked keychain or denied access apart from "never paired".
+  static func lookup(_ key: String) -> (value: String?, status: OSStatus) {
     let q: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
       kSecAttrAccount as String: key, kSecReturnData as String: true,
       kSecMatchLimit as String: kSecMatchLimitOne,
     ]
     var result: CFTypeRef?
-    guard SecItemCopyMatching(q as CFDictionary, &result) == errSecSuccess,
-      let data = result as? Data
-    else { return nil }
-    return String(data: data, encoding: .utf8)
+    let status = SecItemCopyMatching(q as CFDictionary, &result)
+    guard status == errSecSuccess, let data = result as? Data else { return (nil, status) }
+    return (String(data: data, encoding: .utf8), status)
+  }
+  static func describe(_ status: OSStatus) -> String {
+    switch status {
+    case errSecItemNotFound: return "the credential is missing from the keychain"
+    case errSecInteractionNotAllowed: return "the login keychain is locked"
+    case errSecAuthFailed: return "access to the keychain item was denied"
+    case errSecUserCanceled: return "the keychain access request was cancelled"
+    default:
+      let text = SecCopyErrorMessageString(status, nil) as String? ?? "keychain error"
+      return "\(text) (\(status))"
+    }
   }
   static func remove(_ key: String) {
     SecItemDelete(

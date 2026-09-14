@@ -73,6 +73,8 @@ struct ComputerConfiguration: Codable {
   @Published var connected = false
   @Published var busy = false
   @Published var error: String?
+  /// Set when the config says this Mac is paired but its keychain credential cannot be read.
+  @Published var credentialProblem: String?
   @Published var log = ""
   @Published var node = "/opt/homebrew/bin/node"
   @Published var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -233,9 +235,18 @@ struct ComputerConfiguration: Codable {
     error = nil
     do {
       try save()
-      guard let secret = SecureStore.get("computer"), deviceId != nil else {
+      guard deviceId != nil else {
         throw UserFacingError(message: "Pair this Mac with your phone first.")
       }
+      let credential = SecureStore.lookup("computer")
+      guard let secret = credential.value else {
+        let reason = SecureStore.describe(credential.status)
+        credentialProblem = reason
+        log += "Could not read the paired credential: \(reason) [\(credential.status)].\n"
+        throw UserFacingError(
+          message: "This Mac is paired, but its credential can’t be read: \(reason). Unlock your login keychain and press Resume, or re-pair below.")
+      }
+      credentialProblem = nil
       guard FileManager.default.isExecutableFile(atPath: node) else {
         throw UserFacingError(message: "Install Node.js 24 or newer and choose its executable.")
       }
@@ -288,10 +299,19 @@ struct ComputerConfiguration: Codable {
       return
     }
     SecureStore.remove("computer")
+    SecureStore.remove("pending-computer")
     deviceId = nil
     pair = nil
+    credentialProblem = nil
+    error = nil
     pairingWork?.cancel()
     try? save()
+  }
+  /// Forget the unreadable credential and start a fresh pairing in one step.
+  func repair() async {
+    resetPairing()
+    guard deviceId == nil else { return }
+    await beginPairing()
   }
   func setLaunchAtLogin(_ value: Bool) {
     do {
@@ -316,7 +336,7 @@ struct ComputerConfiguration: Codable {
     .windowStyle(.hiddenTitleBar)
     MenuBarExtra("Telegate Connect", systemImage: "phone.arrow.up.right") {
       Text(model.connected ? "Connector running" : "Connector stopped")
-      Button(model.connected ? "Stop connector" : "Start connector") {
+      Button(model.connected ? "Pause connector" : "Resume connector") {
         if model.connected { model.stop() } else { model.start() }
       }
       Divider()
@@ -515,7 +535,7 @@ struct ConnectView: View {
           Text(model.deviceId == nil ? "Your desk. On call." : "Take your ideas with you.")
             .font(.system(size: 27, weight: .semibold, design: .rounded))
           Text(model.name).font(.callout).foregroundStyle(.secondary)
-          Label(model.connected ? "Connector running" : model.deviceId != nil ? "Paired · paused" : "Not paired yet",
+          Label(model.connected ? "Connector running" : model.deviceId != nil ? (model.credentialProblem == nil ? "Paired · paused" : "Paired · credential unreadable") : "Not paired yet",
                 systemImage: model.connected ? "circle.fill" : "circle")
             .font(.caption.weight(.medium)).foregroundStyle(model.connected ? ConnectStyle.accent : .secondary)
         }
@@ -576,11 +596,27 @@ struct ConnectView: View {
           } label: {
             HStack(spacing: 8) {
               if model.busy { ProgressView().controlSize(.small) }
-              Text(model.deviceId == nil ? "Pair my phone" : model.connected ? "Pause connection" : "Start connection")
+              Text(model.deviceId == nil ? "Pair my phone" : model.connected ? "Pause connection" : "Resume connection")
               if model.deviceId == nil { Image(systemName: "arrow.right") }
             }.padding(.horizontal, 8).padding(.vertical, 7)
           }.buttonStyle(.borderedProminent).controlSize(.large)
             .disabled(model.busy || model.harnesses.isEmpty)
+        }
+        if model.harnesses.isEmpty, model.deviceId != nil {
+          Text("Add at least one agent below to resume.").font(.caption).foregroundStyle(.secondary)
+        }
+        if let problem = model.credentialProblem, model.deviceId != nil, !model.connected {
+          HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "key.slash").font(.title3).foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 6) {
+              Text("Paired, but the credential can’t be read: \(problem).")
+                .font(.callout).fixedSize(horizontal: false, vertical: true)
+              Text("If your login keychain is locked, unlock it (Keychain Access → login) and press Resume. Otherwise re-pair: this forgets the old credential and shows a new code for your phone.")
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+              Button("Re-pair this Mac", systemImage: "arrow.triangle.2.circlepath") { Task { await model.repair() } }
+                .disabled(model.busy)
+            }
+          }.padding(14).background(.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
         }
       }
     }.padding(24).background(ConnectStyle.card, in: RoundedRectangle(cornerRadius: 24))
